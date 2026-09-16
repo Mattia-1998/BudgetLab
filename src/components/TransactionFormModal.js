@@ -23,6 +23,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState('expense');
   const [direction, setDirection] = useState('prelievo');
+  const [cashAccountId, setCashAccountId] = useState(null);
   const [category, setCategory] = useState(CATEGORIES[0].key);
   const [accountId, setAccountId] = useState(null);
   const [date, setDate] = useState('');
@@ -36,10 +37,28 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
     setDirection(initial && initial.direction ? initial.direction : 'prelievo');
     setCategory(initial ? initial.category : CATEGORIES[0].key);
     setAccountId(initial ? initial.accountId : null);
+    setCashAccountId(initial && initial.kind === 'transfer' ? (initial.direction === 'deposito' ? initial.accountId : initial.transferTo) : null);
     setDate(initial ? toDmy(initial.date) : toDmy(Date.now()));
     setNote(initial && initial.note ? initial.note : '');
     setError(null);
   };
+
+  const chipRow = ({ label, list, value, onChange, emptyMsg }) => (
+    <View>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <View style={styles.acctRow}>
+        {list.map((a) => {
+          const active = value === a.id;
+          return (
+            <Pressable key={a.id} style={[styles.chip, active && styles.chipActive]} onPress={() => onChange(a.id)}>
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{a.name}</Text>
+            </Pressable>
+          );
+        })}
+        {list.length === 0 ? <Text style={styles.warn}>{emptyMsg}</Text> : null}
+      </View>
+    </View>
+  );
 
   const save = async () => {
     const value = Number(String(amount).replace(',', '.'));
@@ -52,7 +71,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
         if (isEdit) {
           await updateDoc(doc(db, 'transactions', initial.id), { amount: value, date: tsMs, note: note.trim() });
         } else {
-          let cashAcct = accounts.find((a) => a.type === 'contanti');
+          let cashAcct = accounts.find((a) => a.id === cashAccountId);
           if (!cashAcct) {
             const ref = await addDoc(collection(db, 'accounts'), {
               name: 'Contanti',
@@ -101,7 +120,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
           <Segmented
             options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }, { value: 'transfer', label: 'Prelievo/Deposito' }]}
             value={kind}
-            onChange={(v) => { setKind(v); if (v === 'transfer' && !isEdit) setAccountId(null); }}
+            onChange={(v) => { setKind(v); if (v === 'transfer' && !isEdit) { setAccountId(null); const firstCash = accounts.find((a) => a.type === 'contanti'); setCashAccountId(firstCash ? firstCash.id : null); } }}
           />
           {kind === 'transfer' && !isEdit ? (
             <Segmented
@@ -147,27 +166,22 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
               );
             })()
           ) : (
-            <View>
-              <Text style={styles.fieldLabel}>
-                {kind === 'transfer' ? (direction === 'deposito' ? 'Conto in cui depositare' : 'Conto da cui prelevare') : 'Conto'}
-              </Text>
-              <View style={styles.acctRow}>
-                {(kind === 'transfer' ? accounts.filter((a) => a.type !== 'contanti') : accounts).map((a) => {
-                  const active = accountId === a.id;
-                  return (
-                    <Pressable key={a.id} style={[styles.chip, active && styles.chipActive]} onPress={() => setAccountId(a.id)}>
-                      <Text style={[styles.chipText, active && styles.chipTextActive]}>{a.name}</Text>
-                    </Pressable>
-                  );
-                })}
-                {(kind === 'transfer' ? accounts.filter((a) => a.type !== 'contanti').length : accounts.length) === 0 ? (
-                  <Text style={styles.warn}>{kind === 'transfer' ? 'Nessun conto non-contanti disponibile: crea prima un conto.' : 'Nessun conto: crea prima un conto.'}</Text>
-                ) : null}
-              </View>
-              {kind === 'transfer' ? (
-                <Text style={styles.hint}>Il conto Contanti viene usato (o creato automaticamente) come controparte.</Text>
-              ) : null}
-            </View>
+            <>
+              {chipRow({
+                label: kind === 'transfer' ? (direction === 'deposito' ? 'Conto in cui depositare' : 'Conto da cui prelevare') : 'Conto',
+                list: kind === 'transfer' ? accounts.filter((a) => a.type !== 'contanti') : accounts,
+                value: accountId,
+                onChange: setAccountId,
+                emptyMsg: kind === 'transfer' ? 'Nessun conto non-contanti disponibile: crea prima un conto.' : 'Nessun conto: crea prima un conto.',
+              })}
+              {kind === 'transfer' ? chipRow({
+                label: direction === 'deposito' ? 'Contanti da cui prelevare' : 'Contanti in cui depositare',
+                list: accounts.filter((a) => a.type === 'contanti'),
+                value: cashAccountId,
+                onChange: setCashAccountId,
+                emptyMsg: 'Nessun conto Contanti: verrà creato automaticamente.',
+              }) : null}
+            </>
           )}
           <Text style={styles.fieldLabel}>Data (GG/MM/AAAA)</Text>
           <TextInput style={styles.input} value={date} onChangeText={setDate} keyboardType="numeric" />
