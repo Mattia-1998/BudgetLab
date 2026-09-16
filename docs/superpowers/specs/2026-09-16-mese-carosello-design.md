@@ -39,7 +39,7 @@ Labele dei mesi laterali calcolate internamente con `formatMonthLabel` (es. "Set
 ### Interazioni
 
 - **Tap su mese laterale**: seleziona quel mese (sinistra → `onPrev`, destra → `onNext`).
-- **Swipe orizzontale** (`PanResponder`): scorrimento verso sinistra → mese successivo; verso destra → mese precedente. Soglia `60px` e velocità. Animazione `Animated.spring` di spostamento laterale in tempo reale sul fascio dei tre testi (follow del dito), con scatto che mostra i tre testi nella nuova posizione.
+- **Swipe orizzontale** (`PanResponder`): scorrimento verso sinistra → mese successivo; verso destra → mese precedente. Soglia `35px` e velocità (flick veloce sotto soglia cambia comunque mese). Animazione `Animated.spring` di spostamento laterale in tempo reale sul fascio dei tre testi (follow del dito), con scatto che mostra i tre testi nella nuova posizione.
 - **Doppio tap sul centro**: invoca `onAll()` (toggle "Tutti i mesi"). Inerte se `onAll` non passato (caso Home).
 - **Stato `allActive`**: swipe disabilitato; mesi laterali visibili ma non tappabili e ulteriormente sfumati; frecce attive (scelgono il mese di riferimento). Il centro mostra `label` ("Tutti i mesi").
 - **Transizione**: ogni cambio mese anima l'ingresso del nuovo centro (fade + slide).
