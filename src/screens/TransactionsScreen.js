@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, FlatList, TextInput, Pressable, Alert, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, FlatList, TextInput, Pressable, Alert, StyleSheet, ActivityIndicator, ScrollView, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
@@ -26,6 +26,8 @@ export default function TransactionsScreen() {
   const [allMonths, setAllMonths] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState(null);
+  const { width } = useWindowDimensions();
+  const tileWidth = Math.floor((width - 56) / 4); // 32 di padding laterali di filterBlock + 24 di gap (3×8)
 
   const filtered = useMemo(() => {
     const range = allMonths ? null : monthRange(month);
@@ -95,7 +97,24 @@ export default function TransactionsScreen() {
             ))}
           </ScrollView>
         </View>
-        <Segmented options={[{ value: 'all', label: 'Cat: tutte' }, ...CATEGORIES.map((c) => ({ value: c.key, label: c.label }))]} value={category} onChange={setCategory} />
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Categoria</Text>
+          <View style={styles.catGrid}>
+            <Pressable style={[styles.catTileBase, { width: tileWidth }, category === 'all' && styles.catAllActive]} onPress={() => setCategory('all')}>
+              <Ionicons name="apps-outline" size={22} color={category === 'all' ? '#fff' : colors.textMuted} />
+              <Text style={[styles.catText, category === 'all' && styles.catTextActive]}>Tutte</Text>
+            </Pressable>
+            {CATEGORIES.map((c) => {
+              const active = category === c.key;
+              return (
+                <Pressable key={c.key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setCategory(c.key)}>
+                  <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
+                  <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
       </View>
       <FlatList
         data={filtered}
@@ -135,6 +154,11 @@ const styles = StyleSheet.create({
   section: { marginTop: 16 },
   sectionLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, color: colors.textMuted, marginBottom: 8 },
   sectionRow: { flexDirection: 'row', gap: 8, paddingRight: 16 },
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  catTileBase: { height: 78, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  catAllActive: { backgroundColor: '#111827', borderColor: '#111827' },
+  catText: { fontSize: 11, fontWeight: '500', color: '#374151' },
+  catTextActive: { color: '#fff', fontWeight: '600' },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 4 },
