@@ -93,7 +93,7 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
 
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, gap: 6 },
-  stage: { flex: 1, flexDirection: 'row', height: 34, alignItems: 'center' },
+  stage: { flex: 1, flexDirection: 'row', height: 34, alignItems: 'center', overflow: 'hidden' },
   cell: { flex: 1, height: 34, alignItems: 'center', justifyContent: 'center' },
   center: { fontSize: 17, fontWeight: 'bold', color: colors.text, textAlign: 'center', textTransform: 'capitalize' },
   side: { fontSize: 13, color: colors.text, opacity: 0.45, textAlign: 'center', textTransform: 'capitalize' },
