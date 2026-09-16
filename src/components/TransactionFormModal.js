@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
@@ -60,7 +60,8 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   return (
     <Modal visible={visible} transparent animationType="slide" onShow={syncState} onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <ScrollView style={styles.card}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <ScrollView style={styles.card}>
           <Text style={styles.title}>{isEdit ? 'Modifica movimento' : 'Nuovo movimento'}</Text>
           <Segmented
             options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }]}
@@ -111,6 +112,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
             </Pressable>
           </View>
         </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );

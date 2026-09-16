@@ -39,6 +39,9 @@ export default function HomeScreen() {
       <OfflineBanner />
       <MonthlyNav month={month} label={formatMonthLabel(month)} onPrev={prev} onNext={next} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {accounts.length === 0 && !loadingAccts && !loadingTxs && !errorAccts && !errorTxs ? (
+          <Text style={styles.invite}>Crea un conto nella tab Conti per iniziare</Text>
+        ) : null}
         <View style={styles.totalCard}>
           <Text style={styles.totalLabel}>Totale saldi</Text>
           <Text style={[styles.totalValue, { color: total >= 0 ? '#1B5E20' : '#C62828' }]}>{formatCurrency(total)}</Text>
@@ -79,6 +82,7 @@ const styles = StyleSheet.create({
   sumIn: { color: '#1B5E20', fontWeight: '600' },
   sumOut: { color: '#C62828', fontWeight: '600' },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginHorizontal: 16, marginTop: 16 },
+  invite: { marginHorizontal: 16, marginTop: 24, marginBottom: 8, fontSize: 15, color: '#888', textAlign: 'center' },
   empty: { textAlign: 'center', marginTop: 20, color: '#888' },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#1B5E20', alignItems: 'center', justifyContent: 'center', elevation: 4 },
 });

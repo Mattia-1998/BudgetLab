@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 
@@ -41,7 +41,7 @@ export default function AccountFormModal({ visible, onClose, initial }) {
   return (
     <Modal visible={visible} transparent animationType="slide" onShow={syncState} onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <View style={styles.card}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.card}>
           <Text style={styles.title}>{isEdit ? 'Modifica conto' : 'Nuovo conto'}</Text>
           <TextInput style={styles.input} placeholder="Nome (es. Intesa)" value={name} onChangeText={setName} />
           <View style={styles.row}>
@@ -62,10 +62,10 @@ export default function AccountFormModal({ visible, onClose, initial }) {
               <Text style={styles.btnText}>Annulla</Text>
             </Pressable>
             <Pressable style={[styles.btn, styles.btnSave]} onPress={save}>
-              <Text style={styles.btnText}>Salva</Text>
+              <Text style={[styles.btnText, { color: '#fff' }]}>Salva</Text>
             </Pressable>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
