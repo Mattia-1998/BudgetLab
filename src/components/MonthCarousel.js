@@ -14,6 +14,8 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
   const [lastTap, setLastTap] = useState(0);
   const x = useRef(new Animated.Value(0)).current;
   const offsets = useRef([-SLOT, 0, SLOT].map((b) => new Animated.Value(b))).current;
+  const allActiveRef = useRef(!!allActive);
+  allActiveRef.current = !!allActive;
 
   const slide = (dir) => {
     Animated.timing(x, { toValue: dir === 1 ? SLOT : -SLOT, duration: 220, useNativeDriver: false }).start(() => {
@@ -28,7 +30,7 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
 
   const pan = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => !allActive && Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
+      onMoveShouldSetPanResponder: (_, g) => !allActiveRef.current && Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
       onPanResponderMove: (_, g) => x.setValue(g.dx),
       onPanResponderRelease: (_, g) => {
         if (g.dx > THRESHOLD) slide(1);
