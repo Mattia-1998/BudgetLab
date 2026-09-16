@@ -1,16 +1,11 @@
 import { initializeApp } from 'firebase/app';
-import { initializeFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from 'firebase/firestore';
+import { initializeFirestore, memoryLocalCache } from 'firebase/firestore';
 import { FIREBASE_CONFIG } from './config.js';
 
 const app = initializeApp(FIREBASE_CONFIG);
-const db = initializeFirestore(app, { cacheSizeBytes: CACHE_SIZE_UNLIMITED });
 
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code === 'already-exists') {
-    console.warn('[firebase] persistenza già attiva');
-  } else {
-    console.error('[firebase] inizializzazione persistenza fallita', err);
-  }
-});
+// Su React Native (Expo Go) IndexedDB non è disponibile: si usa la cache in memoria,
+// il SDK bufferizza le scritture offline durante la sessione e le sincronizza alla riconnessione.
+const db = initializeFirestore(app, { cache: memoryLocalCache({}) });
 
 export { db, app };
