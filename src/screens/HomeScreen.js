@@ -5,7 +5,7 @@ import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
 import { monthRange, totalBalance, sumByKind } from '../utils/finance';
 import { formatMonthLabel, formatCurrency } from '../utils/format';
-import MonthlyNav from '../components/MonthlyNav';
+import MonthCarousel from '../components/MonthCarousel';
 import AccountCards from '../components/AccountCards';
 import ExpensePie from '../components/ExpensePie';
 import TransactionItem from '../components/TransactionItem';
@@ -38,7 +38,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <OfflineBanner />
-      <MonthlyNav month={month} label={formatMonthLabel(month)} onPrev={prev} onNext={next} />
+      <MonthCarousel month={month} label={formatMonthLabel(month)} onPrev={prev} onNext={next} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {accounts.length === 0 && !loadingAccts && !loadingTxs && !errorAccts && !errorTxs ? (
           <Text style={styles.invite}>Crea un conto nella tab Conti per iniziare</Text>

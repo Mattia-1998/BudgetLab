@@ -10,7 +10,7 @@ import { monthRange, isInRange } from '../utils/finance';
 import { formatMonthLabel } from '../utils/format';
 import TransactionItem from '../components/TransactionItem';
 import TransactionFormModal from '../components/TransactionFormModal';
-import MonthlyNav from '../components/MonthlyNav';
+import MonthCarousel from '../components/MonthCarousel';
 import Segmented from '../components/Segmented';
 import OfflineBanner from '../components/OfflineBanner';
 import { colors } from '../theme/colors';
@@ -78,15 +78,14 @@ export default function TransactionsScreen() {
           value={category}
           onChange={setCategory}
         />
-        <MonthlyNav
+        <MonthCarousel
           month={month}
           label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)}
           onPrev={prev}
           onNext={next}
-          onAll={() => setAllMonths(true)}
+          onAll={() => setAllMonths(v => !v)}
           allActive={allMonths}
         />
-        {allMonths ? <Pressable onPress={() => setAllMonths(false)}><Text style={styles.undoAll}>Torna al mese corrente</Text></Pressable> : null}
       </View>
       <FlatList
         data={filtered}
@@ -114,7 +113,6 @@ const styles = StyleSheet.create({
   errorText: { color: colors.negative },
   search: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#DDD' },
   filters: { marginTop: 8, paddingHorizontal: 16 },
-  undoAll: { color: colors.primary, textAlign: 'center', marginBottom: 6, fontWeight: '600' },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 4 },
 });
