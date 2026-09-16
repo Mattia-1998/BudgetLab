@@ -13,6 +13,7 @@ export default function AccountFormModal({ visible, onClose, initial }) {
   const [initialBalance, setInitialBalance] = useState('');
   const [type, setType] = useState(TYPES[0]);
   const [color, setColor] = useState(COLORS[0]);
+  const [code, setCode] = useState('');
   const [error, setError] = useState(null);
   const isEdit = !!initial;
 
@@ -21,6 +22,7 @@ export default function AccountFormModal({ visible, onClose, initial }) {
     setInitialBalance(initial ? String(initial.initialBalance ?? '') : '');
     setType(initial ? initial.type : TYPES[0]);
     setColor(initial ? initial.color : COLORS[0]);
+    setCode(initial ? (initial.code ?? '') : '');
     setError(null);
   };
 
@@ -39,6 +41,7 @@ export default function AccountFormModal({ visible, onClose, initial }) {
       type,
       color,
       initialBalance: initialBalance.trim() === '' ? 0 : parsed,
+      code: code.trim(),
       createdAt: initial ? initial.createdAt : Date.now(),
     };
     try {
@@ -73,6 +76,13 @@ export default function AccountFormModal({ visible, onClose, initial }) {
               </Pressable>
             ))}
           </View>
+          <TextInput
+            style={styles.input}
+            placeholder={type === 'banca' ? 'IBAN (es. IT60X0542811101000000123456)' : 'Numero carta (es. 1234 5678 9101 1121)'}
+            value={code}
+            onChangeText={setCode}
+            autoCapitalize="characters"
+          />
           <View style={styles.colorRow}>
             {COLORS.map((c) => (
               <Pressable key={c} style={[styles.colorDot, { backgroundColor: c }, color === c && styles.colorDotActive]} onPress={() => setColor(c)} />
