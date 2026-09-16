@@ -12,7 +12,7 @@ export default function AccountCards({ accounts, transactions }) {
         return (
           <View key={a.id} style={[styles.card, { borderLeftColor: a.color }]}>
             <Text style={styles.name}>{a.name}</Text>
-            <Text style={[styles.balance, { color: bal >= 0 ? colors.positive : colors.negative }]}>{formatCurrency(bal)}</Text>
+            <Text style={[styles.balance, { color: bal < 0 ? colors.negative : colors.text }]}>{formatCurrency(bal)}</Text>
           </View>
         );
       })}

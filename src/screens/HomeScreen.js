@@ -46,8 +46,8 @@ export default function HomeScreen() {
           <Text style={styles.invite}>Crea un conto nella tab Conti per iniziare</Text>
         ) : null}
         <View style={styles.totalCard}>
-          <Text style={styles.totalLabel}>Totale saldi</Text>
-          <Text style={[styles.totalValue, { color: total >= 0 ? colors.positive : colors.negative }]}>{formatCurrency(total)}</Text>
+          <Text style={styles.totalLabel}>Totale Saldi</Text>
+          <Text style={[styles.totalValue, { color: total < 0 ? colors.negative : colors.text }]}>{formatCurrency(total)}</Text>
           <View style={styles.monthSummary}>
             <Text style={styles.sumIn}>Entrate: {formatCurrency(income)}</Text>
             <Text style={styles.sumOut}>Uscite: {formatCurrency(expense)}</Text>
@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 100 },
   carouselRow: { marginHorizontal: 16 },
   totalCard: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 8, borderRadius: 12, padding: 16 },
-  totalLabel: { fontSize: 14, color: '#666' },
-  totalValue: { fontSize: 28, fontWeight: '700', marginTop: 4 },
-  monthSummary: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  totalLabel: { fontSize: 14, color: colors.text, fontWeight: '700', textAlign: 'center' },
+  totalValue: { fontSize: 28, fontWeight: '700', marginTop: 6, marginBottom: 2, textAlign: 'center' },
+  monthSummary: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
   sumIn: { color: colors.positive, fontWeight: '600' },
   sumOut: { color: colors.negative, fontWeight: '600' },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginHorizontal: 16, marginTop: 16 },
