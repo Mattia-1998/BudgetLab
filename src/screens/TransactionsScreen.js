@@ -11,7 +11,6 @@ import { formatMonthLabel } from '../utils/format';
 import TransactionItem from '../components/TransactionItem';
 import TransactionFormModal from '../components/TransactionFormModal';
 import MonthCarousel from '../components/MonthCarousel';
-import Segmented from '../components/Segmented';
 import OfflineBanner from '../components/OfflineBanner';
 import { colors } from '../theme/colors';
 
@@ -63,59 +62,6 @@ export default function TransactionsScreen() {
   return (
     <View style={styles.container}>
       <OfflineBanner />
-      <View style={styles.searchWrap}>
-        <Ionicons name="search-outline" size={18} color={colors.faintText} style={styles.searchIcon} />
-        <TextInput style={styles.search} placeholder="Cerca per categoria o nota..." value={query} onChangeText={setQuery} />
-        {query ? (
-          <Pressable style={styles.searchClear} onPress={() => setQuery('')} hitSlop={8}>
-            <Ionicons name="close-circle" size={18} color={colors.faintText} />
-          </Pressable>
-        ) : null}
-      </View>
-      <View style={styles.filterRow}>
-        {[{ value: 'all', label: 'Tutte' }, { value: 'income', label: 'Entrate' }, { value: 'expense', label: 'Uscite' }].map((opt) => (
-          <Pressable key={opt.value} style={[styles.pill, kind === opt.value && styles.pillActive]} onPress={() => setKind(opt.value)}>
-            <Text style={[styles.pillText, kind === opt.value && styles.pillTextActive]}>{opt.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <View style={styles.monthWrap}>
-        <MonthCarousel month={month} label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)} onPrev={prev} onNext={next} onAll={() => setAllMonths((v) => !v)} allActive={allMonths} />
-      </View>
-      <View style={styles.filterBlock}>
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Conto</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sectionRow}>
-            <Pressable style={[styles.pill, accountId === 'all' && styles.pillActive]} onPress={() => setAccountId('all')}>
-              <Text style={[styles.pillText, accountId === 'all' && styles.pillTextActive]}>Tutti i conti</Text>
-            </Pressable>
-            {accounts.map((a) => (
-              <Pressable key={a.id} style={[styles.pill, accountId === a.id && styles.pillActive]} onPress={() => setAccountId(a.id)}>
-                <View style={[styles.dot, { backgroundColor: a.color }]} />
-                <Text style={[styles.pillText, accountId === a.id && styles.pillTextActive]}>{a.name}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Categoria</Text>
-          <View style={styles.catGrid}>
-            <Pressable style={[styles.catTileBase, { width: tileWidth }, category === 'all' && styles.catAllActive]} onPress={() => setCategory('all')}>
-              <Ionicons name="apps-outline" size={22} color={category === 'all' ? '#fff' : colors.textMuted} />
-              <Text style={[styles.catText, category === 'all' && styles.catTextActive]}>Tutte</Text>
-            </Pressable>
-            {CATEGORIES.map((c) => {
-              const active = category === c.key;
-              return (
-                <Pressable key={c.key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setCategory(c.key)}>
-                  <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
-                  <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      </View>
       <FlatList
         data={filtered}
         keyExtractor={(t) => t.id}
@@ -126,7 +72,72 @@ export default function TransactionsScreen() {
             onDelete={() => confirmDelete(item)}
           />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Nessun movimento trovato.</Text>}
+        ListHeaderComponent={
+          <View>
+            <View style={styles.searchWrap}>
+              <Ionicons name="search-outline" size={18} color={colors.faintText} style={styles.searchIcon} />
+              <TextInput style={styles.search} placeholder="Cerca per categoria o nota..." value={query} onChangeText={setQuery} />
+              {query ? (
+                <Pressable style={styles.searchClear} onPress={() => setQuery('')} hitSlop={8}>
+                  <Ionicons name="close-circle" size={18} color={colors.faintText} />
+                </Pressable>
+              ) : null}
+            </View>
+            <View style={styles.filterRow}>
+              {[{ value: 'all', label: 'Tutte' }, { value: 'income', label: 'Entrate' }, { value: 'expense', label: 'Uscite' }].map((opt) => (
+                <Pressable key={opt.value} style={[styles.pill, kind === opt.value && styles.pillActive]} onPress={() => setKind(opt.value)}>
+                  <Text style={[styles.pillText, kind === opt.value && styles.pillTextActive]}>{opt.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <View style={styles.monthWrap}>
+              <MonthCarousel month={month} label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)} onPrev={prev} onNext={next} onAll={() => setAllMonths((v) => !v)} allActive={allMonths} />
+            </View>
+            <View style={styles.filterBlock}>
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Conto</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sectionRow}>
+                  <Pressable style={[styles.pill, accountId === 'all' && styles.pillActive]} onPress={() => setAccountId('all')}>
+                    <Text style={[styles.pillText, accountId === 'all' && styles.pillTextActive]}>Tutti i conti</Text>
+                  </Pressable>
+                  {accounts.map((a) => (
+                    <Pressable key={a.id} style={[styles.pill, accountId === a.id && styles.pillActive]} onPress={() => setAccountId(a.id)}>
+                      <View style={[styles.dot, { backgroundColor: a.color }]} />
+                      <Text style={[styles.pillText, accountId === a.id && styles.pillTextActive]}>{a.name}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>Categoria</Text>
+                <View style={styles.catGrid}>
+                  <Pressable style={[styles.catTileBase, { width: tileWidth }, category === 'all' && styles.catAllActive]} onPress={() => setCategory('all')}>
+                    <Ionicons name="apps-outline" size={22} color={category === 'all' ? '#fff' : colors.textMuted} />
+                    <Text style={[styles.catText, category === 'all' && styles.catTextActive]}>Tutte</Text>
+                  </Pressable>
+                  {CATEGORIES.map((c) => {
+                    const active = category === c.key;
+                    return (
+                      <Pressable key={c.key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setCategory(c.key)}>
+                        <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
+                        <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyCard}>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="clipboard-outline" size={26} color={colors.faintText} />
+            </View>
+            <Text style={styles.emptyTitle}>Nessun movimento trovato</Text>
+            <Text style={styles.emptySub}>Prova a cambiare i filtri di ricerca o il mese.</Text>
+          </View>
+        }
       />
       <Pressable style={styles.fab} onPress={() => { setEditing(null); setModalVisible(true); }}>
         <Ionicons name="add" size={30} color="#fff" />
@@ -160,6 +171,9 @@ const styles = StyleSheet.create({
   catText: { fontSize: 11, fontWeight: '500', color: '#374151' },
   catTextActive: { color: '#fff', fontWeight: '600' },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
-  empty: { textAlign: 'center', marginTop: 40, color: '#888' },
+  emptyCard: { marginTop: 24, marginHorizontal: 16, borderRadius: 24, borderWidth: 1, borderStyle: 'dashed', borderColor: '#D1D5DB', paddingVertical: 40, alignItems: 'center', backgroundColor: '#fff' },
+  emptyIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { fontSize: 14, fontWeight: '600', color: '#1F2937', textAlign: 'center', marginTop: 12 },
+  emptySub: { fontSize: 12, color: colors.faintText, textAlign: 'center', marginTop: 4 },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 4 },
 });
