@@ -22,6 +22,7 @@ const toDmy = (ts) => {
 export default function TransactionFormModal({ visible, onClose, accounts, initial }) {
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState('expense');
+  const [direction, setDirection] = useState('prelievo');
   const [category, setCategory] = useState(CATEGORIES[0].key);
   const [accountId, setAccountId] = useState(null);
   const [date, setDate] = useState('');
@@ -32,6 +33,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const syncState = () => {
     setAmount(initial ? String(initial.amount) : '');
     setKind(initial ? initial.kind : 'expense');
+    setDirection(initial && initial.direction ? initial.direction : 'prelievo');
     setCategory(initial ? initial.category : CATEGORIES[0].key);
     setAccountId(initial ? initial.accountId : null);
     setDate(initial ? toDmy(initial.date) : toDmy(Date.now()));
@@ -45,6 +47,38 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
     if (!accountId) { setError('Seleziona un conto'); return; }
     const tsMs = parseDate(date);
     if (tsMs == null) { setError('Data non valida (usare GG/MM/AAAA)'); return; }
+    if (kind === 'transfer') {
+      try {
+        if (isEdit) {
+          await updateDoc(doc(db, 'transactions', initial.id), { amount: value, date: tsMs, note: note.trim() });
+        } else {
+          let cashAcct = accounts.find((a) => a.type === 'contanti');
+          if (!cashAcct) {
+            const ref = await addDoc(collection(db, 'accounts'), {
+              name: 'Contanti',
+              type: 'contanti',
+              color: '#757575',
+              initialBalance: 0,
+              createdAt: Date.now(),
+            });
+            cashAcct = { id: ref.id };
+          }
+          await addDoc(collection(db, 'transactions'), {
+            kind: 'transfer',
+            direction,
+            accountId: direction === 'prelievo' ? accountId : cashAcct.id,
+            transferTo: direction === 'prelievo' ? cashAcct.id : accountId,
+            amount: value,
+            date: tsMs,
+            note: note.trim(),
+          });
+        }
+        onClose();
+      } catch (err) {
+        setError('Errore di salvataggio: ' + err.message);
+      }
+      return;
+    }
     const data = { accountId, amount: value, kind, category, date: tsMs, note: note.trim() };
     try {
       if (isEdit) {
@@ -65,10 +99,17 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
           <ScrollView style={styles.card}>
           <Text style={styles.title}>{isEdit ? 'Modifica movimento' : 'Nuovo movimento'}</Text>
           <Segmented
-            options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }]}
+            options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }, { value: 'transfer', label: 'Prelievo/Deposito' }]}
             value={kind}
             onChange={setKind}
           />
+          {kind === 'transfer' && !isEdit ? (
+            <Segmented
+              options={[{ value: 'prelievo', label: 'Prelievo' }, { value: 'deposito', label: 'Deposito' }]}
+              value={direction}
+              onChange={setDirection}
+            />
+          ) : null}
           <TextInput
             style={styles.input}
             placeholder="Importo (es. 12,50)"
@@ -76,30 +117,58 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
             value={amount}
             onChangeText={setAmount}
           />
-          <Text style={styles.fieldLabel}>Categoria</Text>
-          <View style={styles.catGrid}>
-            {CATEGORIES.map((c) => {
-              const active = category === c.key;
+          {kind !== 'transfer' ? (
+            <>
+              <Text style={styles.fieldLabel}>Categoria</Text>
+              <View style={styles.catGrid}>
+                {CATEGORIES.map((c) => {
+                  const active = category === c.key;
+                  return (
+                    <Pressable key={c.key} style={[styles.cat, active && { borderColor: c.color, borderWidth: 2 }]} onPress={() => setCategory(c.key)}>
+                      <Ionicons name={c.icon} size={20} color={c.color} />
+                      <Text style={styles.catText}>{c.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          ) : null}
+          {kind === 'transfer' && isEdit ? (
+            (() => {
+              const src = accounts.find((a) => a.id === initial.accountId);
+              const dst = accounts.find((a) => a.id === initial.transferTo);
               return (
-                <Pressable key={c.key} style={[styles.cat, active && { borderColor: c.color, borderWidth: 2 }]} onPress={() => setCategory(c.key)}>
-                  <Ionicons name={c.icon} size={20} color={c.color} />
-                  <Text style={styles.catText}>{c.label}</Text>
-                </Pressable>
+                <View style={styles.readonlyBox}>
+                  <Text style={styles.readonlyText}>
+                    {(src ? src.name : 'Conto')} → {(dst ? dst.name : 'Conto')} · {initial.direction === 'deposito' ? 'Deposito' : 'Prelievo'}
+                  </Text>
+                  <Text style={styles.readonlyHint}>Direzione e conti non modificabili in modifica.</Text>
+                </View>
               );
-            })}
-          </View>
-          <Text style={styles.fieldLabel}>Conto</Text>
-          <View style={styles.acctRow}>
-            {accounts.map((a) => {
-              const active = accountId === a.id;
-              return (
-                <Pressable key={a.id} style={[styles.chip, active && styles.chipActive]} onPress={() => setAccountId(a.id)}>
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{a.name}</Text>
-                </Pressable>
-              );
-            })}
-            {accounts.length === 0 ? <Text style={styles.warn}>Nessun conto: crea prima un conto.</Text> : null}
-          </View>
+            })()
+          ) : (
+            <View>
+              <Text style={styles.fieldLabel}>
+                {kind === 'transfer' ? (direction === 'deposito' ? 'Conto in cui depositare' : 'Conto da cui prelevare') : 'Conto'}
+              </Text>
+              <View style={styles.acctRow}>
+                {(kind === 'transfer' ? accounts.filter((a) => a.type !== 'contanti') : accounts).map((a) => {
+                  const active = accountId === a.id;
+                  return (
+                    <Pressable key={a.id} style={[styles.chip, active && styles.chipActive]} onPress={() => setAccountId(a.id)}>
+                      <Text style={[styles.chipText, active && styles.chipTextActive]}>{a.name}</Text>
+                    </Pressable>
+                  );
+                })}
+                {(kind === 'transfer' ? accounts.filter((a) => a.type !== 'contanti').length : accounts.length) === 0 ? (
+                  <Text style={styles.warn}>{kind === 'transfer' ? 'Nessun conto non-contanti disponibile: crea prima un conto.' : 'Nessun conto: crea prima un conto.'}</Text>
+                ) : null}
+              </View>
+              {kind === 'transfer' ? (
+                <Text style={styles.hint}>Il conto Contanti viene usato (o creato automaticamente) come controparte.</Text>
+              ) : null}
+            </View>
+          )}
           <Text style={styles.fieldLabel}>Data (GG/MM/AAAA)</Text>
           <TextInput style={styles.input} value={date} onChangeText={setDate} keyboardType="numeric" />
           <TextInput style={styles.input} placeholder="Nota (opzionale)" value={note} onChangeText={setNote} />
@@ -140,4 +209,8 @@ const styles = StyleSheet.create({
   btnCancel: { backgroundColor: '#EEE' },
   btnSave: { backgroundColor: colors.primary },
   btnText: { color: '#333', fontWeight: '600' },
+  hint: { fontSize: 12, color: '#555', marginBottom: 10 },
+  readonlyBox: { borderWidth: 1, borderColor: colors.chipBorder, borderRadius: 8, padding: 12, marginBottom: 12, backgroundColor: '#F9FAFB' },
+  readonlyText: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  readonlyHint: { fontSize: 12, color: '#6B7280', marginTop: 4 },
 });
