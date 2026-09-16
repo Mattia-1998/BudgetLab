@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, FlatList, Pressable, Alert, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Pressable, Alert, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
@@ -64,10 +64,12 @@ export default function AccountsScreen() {
         }}
         ListEmptyComponent={<Text style={styles.empty}>Nessun conto. Aggiungine uno.</Text>}
       />
-      <Pressable style={styles.add} onPress={openCreate}>
-        <Ionicons name="add" size={26} color="#fff" />
-        <Text style={styles.addText}>Aggiungi conto</Text>
-      </Pressable>
+      <View style={styles.addFooter}>
+        <TouchableOpacity style={styles.add} onPress={openCreate}>
+          <Ionicons name="add" size={22} color="#fff" />
+          <Text style={styles.addText}>Aggiungi conto</Text>
+        </TouchableOpacity>
+      </View>
       <AccountFormModal visible={modalVisible} onClose={() => setModalVisible(false)} initial={editing} />
     </View>
   );
@@ -89,6 +91,7 @@ const styles = StyleSheet.create({
   cardBalance: { fontSize: 14, fontWeight: '700', marginRight: 12 },
   cardDelete: { paddingLeft: 4 },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
-  add: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, margin: 16, padding: 14, borderRadius: 12, gap: 6 },
-  addText: { color: '#fff', fontWeight: '600' },
+  addFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 10, backgroundColor: colors.background },
+  add: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: 48, borderRadius: 16, backgroundColor: colors.primary },
+  addText: { color: '#fff', fontSize: 16, fontWeight: '600', marginLeft: 6 },
 });
