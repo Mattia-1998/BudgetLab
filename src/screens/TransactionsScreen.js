@@ -61,31 +61,28 @@ export default function TransactionsScreen() {
   return (
     <View style={styles.container}>
       <OfflineBanner />
-      <TextInput style={styles.search} placeholder="Cerca per categoria o nota" value={query} onChangeText={setQuery} />
-      <View style={styles.filters}>
-        <Segmented
-          options={[{ value: 'all', label: 'Tutte' }, { value: 'income', label: 'Entrate' }, { value: 'expense', label: 'Uscite' }]}
-          value={kind}
-          onChange={setKind}
-        />
-        <Segmented
-          options={[{ value: 'all', label: 'Conto: tutti' }, ...accounts.map((a) => ({ value: a.id, label: a.name }))]}
-          value={accountId}
-          onChange={setAccountId}
-        />
-        <Segmented
-          options={[{ value: 'all', label: 'Cat: tutte' }, ...CATEGORIES.map((c) => ({ value: c.key, label: c.label }))]}
-          value={category}
-          onChange={setCategory}
-        />
-        <MonthCarousel
-          month={month}
-          label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)}
-          onPrev={prev}
-          onNext={next}
-          onAll={() => setAllMonths(v => !v)}
-          allActive={allMonths}
-        />
+      <View style={styles.searchWrap}>
+        <Ionicons name="search-outline" size={18} color={colors.faintText} style={styles.searchIcon} />
+        <TextInput style={styles.search} placeholder="Cerca per categoria o nota..." value={query} onChangeText={setQuery} />
+        {query ? (
+          <Pressable style={styles.searchClear} onPress={() => setQuery('')} hitSlop={8}>
+            <Ionicons name="close-circle" size={18} color={colors.faintText} />
+          </Pressable>
+        ) : null}
+      </View>
+      <View style={styles.filterRow}>
+        {[{ value: 'all', label: 'Tutte' }, { value: 'income', label: 'Entrate' }, { value: 'expense', label: 'Uscite' }].map((opt) => (
+          <Pressable key={opt.value} style={[styles.pill, kind === opt.value && styles.pillActive]} onPress={() => setKind(opt.value)}>
+            <Text style={[styles.pillText, kind === opt.value && styles.pillTextActive]}>{opt.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <View style={styles.monthWrap}>
+        <MonthCarousel month={month} label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)} onPrev={prev} onNext={next} onAll={() => setAllMonths((v) => !v)} allActive={allMonths} />
+      </View>
+      <View style={styles.filterBlock}>
+        <Segmented options={[{ value: 'all', label: 'Conto: tutti' }, ...accounts.map((a) => ({ value: a.id, label: a.name }))]} value={accountId} onChange={setAccountId} />
+        <Segmented options={[{ value: 'all', label: 'Cat: tutte' }, ...CATEGORIES.map((c) => ({ value: c.key, label: c.label }))]} value={category} onChange={setCategory} />
       </View>
       <FlatList
         data={filtered}
@@ -111,8 +108,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   errorText: { color: colors.negative },
-  search: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#DDD' },
-  filters: { marginTop: 8, paddingHorizontal: 16 },
+  searchWrap: { marginHorizontal: 16, marginTop: 12, justifyContent: 'center' },
+  search: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 16, paddingVertical: 14, paddingLeft: 40, paddingRight: 40, fontSize: 14, color: colors.text },
+  searchIcon: { position: 'absolute', left: 14 },
+  searchClear: { position: 'absolute', right: 12 },
+  filterRow: { flexDirection: 'row', gap: 8, marginHorizontal: 16, marginTop: 10 },
+  pill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 17, backgroundColor: '#F1F2F4', borderWidth: 1, borderColor: colors.chipBorder },
+  pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  pillText: { fontSize: 13, fontWeight: '500', color: '#4A5568' },
+  pillTextActive: { color: '#fff', fontWeight: '600' },
+  monthWrap: { marginHorizontal: 16, marginTop: 10 },
+  filterBlock: { paddingHorizontal: 16, marginTop: 8 },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 4 },
 });
