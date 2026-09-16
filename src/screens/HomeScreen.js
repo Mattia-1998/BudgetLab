@@ -38,7 +38,9 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <OfflineBanner />
-      <MonthCarousel month={month} label={formatMonthLabel(month)} onPrev={prev} onNext={next} />
+      <View style={styles.carouselRow}>
+        <MonthCarousel month={month} label={formatMonthLabel(month)} onPrev={prev} onNext={next} />
+      </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {accounts.length === 0 && !loadingAccts && !loadingTxs && !errorAccts && !errorTxs ? (
           <Text style={styles.invite}>Crea un conto nella tab Conti per iniziare</Text>
@@ -76,6 +78,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   errorText: { color: colors.negative },
   scrollContent: { paddingBottom: 100 },
+  carouselRow: { marginHorizontal: 16 },
   totalCard: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 8, borderRadius: 12, padding: 16 },
   totalLabel: { fontSize: 14, color: '#666' },
   totalValue: { fontSize: 28, fontWeight: '700', marginTop: 4 },

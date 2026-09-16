@@ -1,15 +1,18 @@
 import { useEffect, useRef } from 'react';
-import { View, Pressable, PanResponder, Animated, StyleSheet } from 'react-native';
+import { View, Text, Pressable, PanResponder, Animated, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { formatMonthLabel } from '../utils/format';
 
 const DOUBLE_TAP_MS = 300;
+const GAP = 24;
 
 const addMonths = (d, n) => new Date(d.getFullYear(), d.getMonth() + n, 1);
 
 export default function MonthCarousel({ month, label, onPrev, onNext, onAll, allActive }) {
-  const slotRef = useRef(80);
+  const slotRef = useRef(143.5);
+  const prevW = useRef(75);
+  const chipW = useRef(164);
   const lastTap = useRef(0);
   const x = useRef(new Animated.Value(0)).current;
   const z = useRef(new Animated.Value(1)).current;
@@ -23,6 +26,10 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
     z.setValue(0.25);
     Animated.timing(z, { toValue: 1, duration: 220, useNativeDriver: false }).start();
   }, [month]);
+
+  const updateSlot = () => {
+    slotRef.current = (prevW.current + chipW.current) / 2 + GAP;
+  };
 
   const slide = (dir) => {
     const s = slotRef.current;
@@ -56,46 +63,80 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
     if (now - lastTap.current < DOUBLE_TAP_MS) { lastTap.current = 0; onAll(); } else lastTap.current = now;
   };
 
-  const onStageLayout = (e) => {
-    const w = e.nativeEvent.layout.width;
-    if (w > 0) slotRef.current = w / 3;
-  };
-
   const prevDisabled = !!allActive;
   const nextDisabled = !!allActive;
   const prevLabel = formatMonthLabel(addMonths(month, -1));
   const nextLabel = formatMonthLabel(addMonths(month, 1));
-  const move = { transform: [{ translateX: x }] };
-  const moveRecess = { transform: [{ translateX: x }, { translateY: 3 }] };
 
   return (
     <View style={styles.wrap}>
-      <Pressable onPress={() => slide(1)} hitSlop={12} accessibilityLabel="Mese precedente">
-        <Ionicons name="chevron-back" size={18} color={colors.primary} />
+      <Pressable style={styles.arrowBtn} onPress={() => slide(1)} hitSlop={6} accessibilityLabel="Mese precedente">
+        <Ionicons name="chevron-back" size={16} color={colors.primary} />
       </Pressable>
-      <View style={styles.stage} onLayout={onStageLayout} {...pan.panHandlers}>
-        <Pressable disabled={prevDisabled} onPress={prevDisabled ? undefined : () => slide(1)} style={styles.cell} hitSlop={8}>
-          <Animated.Text style={[styles.side, moveRecess, prevDisabled && styles.sideDisabled]}>{prevLabel}</Animated.Text>
-        </Pressable>
-        <Pressable disabled={nextDisabled} onPress={nextDisabled ? undefined : () => slide(-1)} style={styles.cell} hitSlop={8}>
-          <Animated.Text style={[styles.side, moveRecess, nextDisabled && styles.sideDisabled]}>{nextLabel}</Animated.Text>
-        </Pressable>
-        <Pressable onPress={handleCenterPress} style={styles.cell} hitSlop={8}>
-          <Animated.Text style={[styles.center, move, { opacity: z }]}>{label}</Animated.Text>
-        </Pressable>
+      <View style={styles.track} {...pan.panHandlers}>
+        <Animated.View style={[styles.group, { transform: [{ translateX: x }] }]}>
+          <Pressable disabled={prevDisabled} onPress={prevDisabled ? undefined : () => slide(1)} hitSlop={6} onLayout={(e) => { prevW.current = e.nativeEvent.layout.width; updateSlot(); }}>
+            <Text style={[styles.side, prevDisabled && styles.sideDisabled]}>{prevLabel}</Text>
+          </Pressable>
+          <Animated.View onLayout={(e) => { chipW.current = e.nativeEvent.layout.width; updateSlot(); }} style={[{ opacity: z }]}>
+            <Pressable style={styles.chip} onPress={handleCenterPress} hitSlop={4}>
+              <Text style={styles.chipText}>{label}</Text>
+            </Pressable>
+          </Animated.View>
+          <Pressable disabled={nextDisabled} onPress={nextDisabled ? undefined : () => slide(-1)} hitSlop={6}>
+            <Text style={[styles.side, nextDisabled && styles.sideDisabled]}>{nextLabel}</Text>
+          </Pressable>
+        </Animated.View>
       </View>
-      <Pressable onPress={() => slide(-1)} hitSlop={12} accessibilityLabel="Mese successivo">
-        <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+      <Pressable style={styles.arrowBtn} onPress={() => slide(-1)} hitSlop={6} accessibilityLabel="Mese successivo">
+        <Ionicons name="chevron-forward" size={16} color={colors.primary} />
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, gap: 6 },
-  stage: { flex: 1, flexDirection: 'row', height: 34, alignItems: 'center', overflow: 'hidden' },
-  cell: { flex: 1, height: 34, alignItems: 'center', justifyContent: 'center' },
-  center: { fontSize: 17, fontWeight: 'bold', color: colors.text, textAlign: 'center', textTransform: 'capitalize' },
-  side: { fontSize: 13, color: colors.text, opacity: 0.45, textAlign: 'center', textTransform: 'capitalize' },
-  sideDisabled: { opacity: 0.2 },
+  wrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.trackBg,
+    borderRadius: 18,
+    paddingVertical: 6,
+    paddingLeft: 8,
+    paddingRight: 8,
+    marginVertical: 6,
+    gap: 8,
+    overflow: 'hidden',
+  },
+  track: { flex: 1, height: 38, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  group: { flexDirection: 'row', alignItems: 'center', gap: GAP },
+  arrowBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.10,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
+  chip: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: colors.chipBorder,
+    shadowColor: '#000',
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 3,
+  },
+  chipText: { fontSize: 16, fontWeight: 'bold', color: colors.text, textAlign: 'center', textTransform: 'capitalize' },
+  side: { fontSize: 14, color: colors.faintText, fontWeight: '500', textTransform: 'capitalize' },
+  sideDisabled: { opacity: 0.3 },
 });
