@@ -13,6 +13,7 @@ import TransactionFormModal from '../components/TransactionFormModal';
 import MonthlyNav from '../components/MonthlyNav';
 import Segmented from '../components/Segmented';
 import OfflineBanner from '../components/OfflineBanner';
+import { colors } from '../theme/colors';
 
 export default function TransactionsScreen() {
   const { accounts, loading: loadingAccts, error: errorAccts } = useAccounts();
@@ -108,12 +109,12 @@ export default function TransactionsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F5F5' },
-  errorText: { color: '#C62828' },
+  container: { flex: 1, backgroundColor: colors.background },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  errorText: { color: colors.negative },
   search: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#DDD' },
   filters: { marginTop: 8, paddingHorizontal: 16 },
-  undoAll: { color: '#1B5E20', textAlign: 'center', marginBottom: 6, fontWeight: '600' },
+  undoAll: { color: colors.primary, textAlign: 'center', marginBottom: 6, fontWeight: '600' },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
-  fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#1B5E20', alignItems: 'center', justifyContent: 'center', elevation: 4 },
+  fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 4 },
 });

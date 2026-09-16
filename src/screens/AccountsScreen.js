@@ -9,6 +9,7 @@ import { accountBalance, totalBalance } from '../utils/finance';
 import { formatCurrency } from '../utils/format';
 import AccountFormModal from '../components/AccountFormModal';
 import OfflineBanner from '../components/OfflineBanner';
+import { colors } from '../theme/colors';
 
 export default function AccountsScreen() {
   const { accounts, loading, error } = useAccounts();
@@ -36,13 +37,13 @@ export default function AccountsScreen() {
       <OfflineBanner />
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>Totale</Text>
-        <Text style={[styles.totalValue, { color: total >= 0 ? '#1B5E20' : '#C62828' }]}>{formatCurrency(total)}</Text>
+        <Text style={[styles.totalValue, { color: total >= 0 ? colors.positive : colors.negative }]}>{formatCurrency(total)}</Text>
       </View>
       <FlatList
         data={accounts}
         keyExtractor={(a) => a.id}
         renderItem={({ item }) => {
-          const bal = accountBalance(transactions, item.id);
+          const bal = accountBalance(transactions, item.id, item.initialBalance);
           return (
             <Pressable style={styles.card} onPress={() => openEdit(item)} onLongPress={() => confirmDelete(item)}>
               <View style={[styles.dot, { backgroundColor: item.color }]} />
@@ -51,9 +52,9 @@ export default function AccountsScreen() {
                 <Text style={styles.cardType}>{item.type}</Text>
               </View>
               <Pressable onPress={() => confirmDelete(item)} hitSlop={12}>
-                <Ionicons name="trash-outline" size={20} color="#C62828" />
+                <Ionicons name="trash-outline" size={20} color={colors.negative} />
               </Pressable>
-              <Text style={[styles.cardBalance, { color: bal >= 0 ? '#1B5E20' : '#C62828' }]}>{formatCurrency(bal)}</Text>
+              <Text style={[styles.cardBalance, { color: bal >= 0 ? colors.positive : colors.negative }]}>{formatCurrency(bal)}</Text>
             </Pressable>
           );
         }}
@@ -69,9 +70,9 @@ export default function AccountsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F5F5' },
-  errorText: { color: '#C62828' },
+  container: { flex: 1, backgroundColor: colors.background },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+  errorText: { color: colors.negative },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#fff' },
   totalLabel: { fontSize: 16, color: '#555' },
   totalValue: { fontSize: 22, fontWeight: '700' },
@@ -82,6 +83,6 @@ const styles = StyleSheet.create({
   cardType: { fontSize: 13, color: '#888', textTransform: 'capitalize' },
   cardBalance: { fontSize: 16, fontWeight: '700' },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
-  add: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1B5E20', margin: 16, padding: 14, borderRadius: 12, gap: 6 },
+  add: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, margin: 16, padding: 14, borderRadius: 12, gap: 6 },
   addText: { color: '#fff', fontWeight: '600' },
 });

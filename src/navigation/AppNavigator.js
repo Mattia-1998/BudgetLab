@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import AccountsScreen from '../screens/AccountsScreen';
+import { colors } from '../theme/colors';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,7 +22,7 @@ export default function AppNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name={TAB_ICONS[route.name]} size={size} color={color} />
           ),
-          tabBarActiveTintColor: '#1B5E20',
+          tabBarActiveTintColor: colors.primary,
           headerTitleAlign: 'center',
         })}
       >

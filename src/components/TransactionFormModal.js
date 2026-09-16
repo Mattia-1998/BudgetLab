@@ -5,6 +5,7 @@ import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { CATEGORIES } from '../constants/categories';
 import Segmented from './Segmented';
+import { colors } from '../theme/colors';
 
 const parseDate = (value) => {
   const m = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -123,20 +124,20 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, maxHeight: '90%' },
   title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   fieldLabel: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 4 },
-  input: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, marginBottom: 10 },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
   cat: { alignItems: 'center', justifyContent: 'center', width: 80, padding: 8, borderRadius: 10, borderWidth: 1, borderColor: 'transparent', marginBottom: 8 },
   catText: { fontSize: 11, color: '#444' },
   acctRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
   chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: '#EEE', marginRight: 8, marginBottom: 8 },
-  chipActive: { backgroundColor: '#1B5E20' },
+  chipActive: { backgroundColor: colors.primary },
   chipText: { color: '#333' },
   chipTextActive: { color: '#fff' },
   warn: { color: '#B26A00' },
-  error: { color: '#C62828', marginBottom: 10 },
+  error: { color: colors.negative, marginBottom: 10 },
   actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   btn: { flex: 1, alignItems: 'center', padding: 14, borderRadius: 8, marginHorizontal: 6 },
   btnCancel: { backgroundColor: '#EEE' },
-  btnSave: { backgroundColor: '#1B5E20' },
+  btnSave: { backgroundColor: colors.primary },
   btnText: { color: '#333', fontWeight: '600' },
 });

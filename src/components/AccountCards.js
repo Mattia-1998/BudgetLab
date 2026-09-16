@@ -1,17 +1,18 @@
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { accountBalance } from '../utils/finance';
 import { formatCurrency } from '../utils/format';
+import { colors } from '../theme/colors';
 
 export default function AccountCards({ accounts, transactions }) {
   if (accounts.length === 0) return null;
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.content}>
       {accounts.map((a) => {
-        const bal = accountBalance(transactions, a.id);
+        const bal = accountBalance(transactions, a.id, a.initialBalance);
         return (
           <View key={a.id} style={[styles.card, { borderLeftColor: a.color }]}>
             <Text style={styles.name}>{a.name}</Text>
-            <Text style={[styles.balance, { color: bal >= 0 ? '#1B5E20' : '#C62828' }]}>{formatCurrency(bal)}</Text>
+            <Text style={[styles.balance, { color: bal >= 0 ? colors.positive : colors.negative }]}>{formatCurrency(bal)}</Text>
           </View>
         );
       })}

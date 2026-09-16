@@ -1,4 +1,5 @@
 import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { colors } from '../theme/colors';
 
 export default function Segmented({ options, value, onChange }) {
   return (
@@ -18,7 +19,7 @@ export default function Segmented({ options, value, onChange }) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#EEE', marginRight: 8, marginBottom: 8 },
-  chipActive: { backgroundColor: '#1B5E20' },
-  chipText: { color: '#333' },
+  chipActive: { backgroundColor: colors.primary },
+  chipText: { color: colors.text },
   chipTextActive: { color: '#fff' },
 });
