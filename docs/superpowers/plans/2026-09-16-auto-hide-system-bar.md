@@ -135,6 +135,8 @@ git commit -m "feat: hook auto-hide barra di sistema Android (5s inattivita)"
 - Consumes: `useSafeAreaInsets()` da `react-native-safe-area-context` (provider attivo grazie al Task 1).
 - Produce: tab bar con `paddingBottom` animato che scende a 0 quando la barra è nascosta e torna a `insets.bottom` quando è visibile; root wrapper con `onTouchStart={resetTimer}`.
 
+> **Nota (fix approvato dall'utente):** con `@react-navigation/bottom-tabs` v7 il wrapper `Animated.createAnimatedComponent(BottomTabBar)` via render-prop `tabBar` è un no-op (il `style` non raggiunge la view). Il canale corretto che v7 applica davvero è `screenOptions.tabBarStyle`, perché la view radice della tab bar è già un `Animated.View` interno.
+
 - [ ] **Step 1: Riscrivere completamente `src/navigation/AppNavigator.js`**
 
 Sostituire tutto il file con:
@@ -143,7 +145,7 @@ Sostituire tutto il file con:
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from '../screens/HomeScreen';
@@ -159,8 +161,6 @@ const TAB_ICONS = {
   Movimenti: 'swap-vertical-outline',
   Conti: 'wallet-outline',
 };
-
-const AnimatedTabBar = Animated.createAnimatedComponent(BottomTabBar);
 
 export default function AppNavigator() {
   const insets = useSafeAreaInsets();
@@ -179,15 +179,15 @@ export default function AppNavigator() {
     <View style={styles.root} onTouchStart={resetTimer}>
       <NavigationContainer>
         <Tab.Navigator
-          tabBar={(props) => (
-            <AnimatedTabBar {...props} style={[props.style, { paddingBottom: padAnim }]} />
-          )}
           screenOptions={({ route }) => ({
             tabBarIcon: ({ color, size }) => (
               <Ionicons name={TAB_ICONS[route.name]} size={size} color={color} />
             ),
             tabBarActiveTintColor: colors.primary,
             headerTitleAlign: 'center',
+            tabBarStyle: {
+              paddingBottom: padAnim,
+            },
           })}
         >
           <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-Nota: `Animated.createAnimatedComponent(BottomTabBar)` è il pattern documentato da react-navigation per animare la barra tab; `Animated.Value` in `paddingBottom` sostituisce il padding di default (già `insets.bottom` di react-navigation), e scala a 0 quando la barra Android è nascosta.
+Nota: la view radice della tab bar in `@react-navigation/bottom-tabs` v7 è già un `Animated.View` (internamente applica `screenOptions.tabBarStyle` alla sua style, `BottomTabBar.js` riga ~255). Un `Animated.Value` in `tabBarStyle.paddingBottom` viene quindi animato nativamente; scala a 0 quando la barra Android è nascosta.
 
 - [ ] **Step 2: Verifica che compili**
 
