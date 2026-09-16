@@ -50,6 +50,7 @@ export default function AccountsScreen() {
               <View style={styles.cardBody}>
                 <Text style={styles.cardName}>{item.name}</Text>
                 <Text style={styles.cardType}>{item.type}</Text>
+                {item.code ? <Text style={styles.cardCode}>{item.code}</Text> : null}
               </View>
               <Pressable onPress={() => confirmDelete(item)} hitSlop={12}>
                 <Ionicons name="trash-outline" size={20} color={colors.negative} />
@@ -81,6 +82,7 @@ const styles = StyleSheet.create({
   cardBody: { flex: 1 },
   cardName: { fontSize: 16, fontWeight: '600' },
   cardType: { fontSize: 13, color: '#888', textTransform: 'capitalize' },
+  cardCode: { fontSize: 13, color: '#888', marginTop: 2 },
   cardBalance: { fontSize: 16, fontWeight: '700' },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
   add: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, margin: 16, padding: 14, borderRadius: 12, gap: 6 },
