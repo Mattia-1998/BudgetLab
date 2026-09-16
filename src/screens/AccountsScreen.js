@@ -11,6 +11,8 @@ import AccountFormModal from '../components/AccountFormModal';
 import OfflineBanner from '../components/OfflineBanner';
 import { colors } from '../theme/colors';
 
+const TYPE_LABELS = { carta: 'Carta', banca: 'Conto Corrente', contanti: 'Contanti' };
+
 export default function AccountsScreen() {
   const { accounts, loading, error } = useAccounts();
   const { transactions } = useTransactions();
@@ -36,8 +38,8 @@ export default function AccountsScreen() {
     <View style={styles.container}>
       <OfflineBanner />
       <View style={styles.totalRow}>
-        <Text style={styles.totalLabel}>Totale</Text>
-        <Text style={[styles.totalValue, { color: total >= 0 ? colors.positive : colors.negative }]}>{formatCurrency(total)}</Text>
+        <Text style={styles.totalLabel}>Totale saldi</Text>
+        <Text style={[styles.totalValue, { color: total >= 0 ? '#111827' : colors.negative }]}>{formatCurrency(total)}</Text>
       </View>
       <FlatList
         data={accounts}
@@ -74,9 +76,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   errorText: { color: colors.negative },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: '#fff' },
-  totalLabel: { fontSize: 16, color: '#555' },
-  totalValue: { fontSize: 22, fontWeight: '700' },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 16, marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB' },
+  totalLabel: { fontSize: 14, fontWeight: '500', color: '#6B7280' },
+  totalValue: { fontSize: 18, fontWeight: '700' },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, padding: 16, borderRadius: 12, gap: 12 },
   dot: { width: 14, height: 14, borderRadius: 7 },
   cardBody: { flex: 1 },
