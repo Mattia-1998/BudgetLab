@@ -1,49 +1,288 @@
-# Budget Lab v1.0.0
+# Budget Lab
 
-App mobile personale per la gestione di conti e movimenti finanziari, costruita con Expo e React Native. I dati vengono sincronizzati su Cloud Firestore in tempo reale.
+**Versione:** 1.0.0  
+**Piattaforma:** React Native (Expo)  
+**Backend:** Firebase  
 
-## Funzionalità
+App mobile personale per la gestione di conti e movimenti finanziari, costruita con React Native ed Expo. I dati vengono sincronizzati su Cloud Firestore in tempo reale. Permette di gestire conti bancari, movimenti in entrata e uscita, grafici delle spese per categoria, e monitorare la connessione con bufferizzazione offline.
 
-- **Home**: saldo totale, entrate/uscite del mese, grafico a torta delle spese per categoria, ultimi 10 movimenti.
-- **Movimenti**: ricerca, filtri per tipo/conto/categoria/mese, aggiunta, modifica ed eliminazione.
-- **Conti**: gestione conti con saldo sempre calcolato dai movimenti.
-- Indicatore di connessione: i movimenti fatti offline vengono bufferizzati e sincronizzati alla riconnessione.
+---
 
-## Versione
+## 🚀 Funzionalità Principali
 
-**v1.0.0**
+### 🏠 Home
+- Saldo totale calcolato da tutti i conti
+- Entrate/uscite del mese corrente
+- Grafico a torta delle spese per categoria (usando `react-native-gifted-charts`)
+- Ultimi 10 movimenti in riepilogo
 
-## Prerequisiti
+### 📋 Movimenti
+- Ricerca libera per titolo/nota
+- Filtri combinabili: tipo (entrate/uscite), conto, categoria, mese
+- MonthCarousel per scorrere i mesi
+- Aggiunta, modifica e eliminazione movimenti
+- Sezione "Conto" a pill con pallino colore del conto associato
+- Griglia categorie a 4 colonne con tile "Tutte" in stile scuro
+- Scroll unico con intestazione e lista nel `ListHeaderComponent`
 
-- Node.js 20+
-- Expo Go (Google Play) oppure emulatore Android
-- Un progetto Firebase attivo
+### 💳 Conti
+- Gestione conti bancari, carte e contanti
+- Saldo sempre calcolato dai movimenti (via `accountBalance`)
+- Card con pallino colore, etichette tipo (Carta / Conto Corrente / Contanti)
+- Cestino diretto sulla card per eliminazione
+- Riquadro "Totale saldi" con saldo totale di tutti i conti
+- Barra full-width "Aggiungi conto" con modale creazione/modifica
 
-## Setup Firebase
+### 📊 Categorie di spesa
+10 categorie predefinite: Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Shopping, Altro — ciascuna con icona e colore dedicati.
 
-1. Vai su [console.firebase.google.com](https://console.firebase.google.com) e crea un nuovo progetto.
-2. Aggiungi un'app Web al progetto e copia i valori generati.
-3. Attiva **Cloud Firestore**.
-4. Apri `firebase/config.js`: se riparti da questo repo i campi sono già compilati per il progetto attivo; per impostare un nuovo progetto sostituiscili con i valori reali.
-5. Nel tab **Rules** della console Firebase, pubblica le regole di `firestore.rules` per aprire l'accesso (regole aperte, senza autenticazione).
+### 🔌 Modalità offline
+- Indicatore di connessione in tempo reale (tramite `expo-network`)
+- Banner giallo offline con messaggio "Offline"
+- Le scritture offline vengono bufferizzate in memoria (`memoryLocalCache` di Firestore) e sincronizzate alla riconnessione
 
-## Esecuzione
+---
 
+## 🛠️ Stack Tecnologico
+
+| Tecnologia | Versione | Utilizzo |
+|------------|----------|----------|
+| **React Native** | 0.86.3 | Framework mobile |
+| **Expo** | 57.0.23 | Toolchain & runtime |
+| **React Navigation** | 7.x (bottom-tabs 7.19.1) | Navigazione a tab |
+| **Firebase** | 12.19.0 | Database (Firestore) in tempo reale |
+| **react-native-gifted-charts** | 1.4.78 | Grafico a torta spese (Home) |
+| **expo-network** | 57.0.2 | Rilevamento stato connessione |
+| **expo-linear-gradient** | 57.0.2 | Gradiente grafici |
+| **react-native-svg** | 15.15.4 | Rendering SVG (grafici) |
+| **react-native-safe-area-context** | 5.7.0 | Safe area |
+| **react-native-screens** | 4.26.0 | Navigazione nativa |
+
+---
+
+## 📦 Installazione
+
+### Prerequisiti
+- Node.js ≥ 20 (consigliato ≥ 20.19.4)
+- npm
+- Expo CLI: `npm install -g @expo/cli`
+- Un progetto Firebase attivo (opzionale, se vuoi riconfigurare il backend)
+
+### Setup Progetto
 ```bash
+# Clona repository
+cd Cobol
+
+# Installa dipendenze
 npm install
+
+# Configura Firebase (opzionale)
+# Se usi lo stesso progetto Firebase i campi sono già in firebase/config.js
+# Per un nuovo progetto apri firebase/config.js e sostituisci i valori
+
+# Avvia sviluppo
 npx expo start
 ```
 
-Scansiona il codice QR con Expo Go sul tuo dispositivo Android.
+### Comandi Utili
+```bash
+npx expo start              # Avvia Expo Dev Server
+npx expo start --android    # Avvia su emulatore Android
+npx run:android             # Avvia build nativa Android (via Expo)
+npx run:ios                 # Avvia su simulatore iOS (solo macOS)
+npx expo start --web        # Avvia versione web
+```
 
-## Verifica logica pura
+### Verifica logica pura
+```bash
+node --experimental-detect-module scripts/finance.spec.mjs
+```
+Esegue i test di business logic (calcolo saldi, formattazione valuta, categorie).  
+Atteso: `Tutti i controlli di finanza/format/categorie passano.`
+
+---
+
+## ⚙️ Configurazione
+
+### Firebase (`firebase/config.js`)
+```javascript
+export const FIREBASE_CONFIG = {
+  apiKey: "TUA_API_KEY",
+  authDomain: "TUO_PROGETTO.firebaseapp.com",
+  projectId: "TUO_PROGETTO_ID",
+  storageBucket: "TUO_PROGETTO.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
+};
+```
+
+### Permessi Android (`app.json`)
+L'app non richiede permessi speciali (nessuna camera, notifiche o storage nativo).  
+Il pacchetto Android è: `com.mattia1998.budgetlab`  
+Icone adaptive: foreground, background e monochrome in `assets/`.
+
+---
+
+## 📁 Struttura Progetto
+
+```
+Cobol/
+├── App.js                          # Root (Necessario per Expo)
+├── index.js                        # Entry point
+├── app.json                        # Configurazione Expo
+├── package.json                    # Dipendenze
+├── firestore.rules                 # Regole Firestore (aperte)
+├── firebase/
+│   ├── config.js                   # Config Firebase (API key, ecc.)
+│   └── db.js                       # Inizializzazione Firestore (memoryLocalCache)
+│
+├── src/
+│   ├── navigation/
+│   │   └── AppNavigator.js         # Navigatore principale a tab
+│   │
+│   ├── screens/
+│   │   ├── HomeScreen.js           # Home: saldo, grafico torta, ultimi movimenti
+│   │   ├── AccountsScreen.js       # Conti: card, totale saldi, barra aggiungi
+│   │   └── TransactionsScreen.js   # Movimenti: ricerca, filtri, lista
+│   │
+│   ├── components/
+│   │   ├── AccountFormModal.js     # Modale creazione/modifica conto
+│   │   ├── AccountCards.js         # Card singolo conto (old layout, legacy)
+│   │   ├── TransactionFormModal.js # Modale creazione/modifica movimento
+│   │   ├── TransactionItem.js      # Singola riga movimento
+│   │   ├── MonthCarousel.js        # Carosello mese animato
+│   │   ├── ExpensePie.js           # Grafico a torta spese per categoria
+│   │   ├── Segmented.js            # Filtro segmentato (Entrate/Uscite)
+│   │   └── OfflineBanner.js        # Banner "Offline" con indicatore stato
+│   │
+│   ├── hooks/
+│   │   ├── useAccounts.js          # Snapshot real-time conti Firestore
+│   │   ├── useTransactions.js      # Snapshot real-time movimenti Firestore
+│   │   └── useNetworkStatus.js     # Rilevamento connessione via expo-network
+│   │
+│   ├── constants/
+│   │   └── categories.js           # 10 categorie spesa (chiave, label, icona, colore)
+│   │
+│   ├── theme/
+│   │   └── colors.js               # Palette colori globale (primary, negative, background, ecc.)
+│   │
+│   └── utils/
+│       ├── finance.js              # accountBalance, totals, income/outgoing, pie data
+│       └── format.js               # formatCurrency (€), formatDate
+│
+├── scripts/
+│   └── finance.spec.mjs            # Test unitari logica pura (saldo, formati, categorie)
+│
+└── assets/
+    ├── icon.png
+    ├── splash-icon.png
+    ├── favicon.png
+    └── android-icon-*.png          # Icone adaptive Android
+```
+
+---
+
+## 🔥 Architettura Dati (Firestore)
+
+### Collezioni Principali
+| Collezione | Descrizione |
+|------------|-------------|
+| `accounts` | Conti utente (banca, carta, contanti) |
+| `transactions` | Tutti i movimenti finanziari (entrate e uscite) |
+
+### Esempio Documento Account
+```javascript
+{
+  name: "Fineco",
+  type: "carta",              // "carta" | "banca" | "contanti"
+  color: "#4F46E5",           // colore card (HEX)
+  initialBalance: 1200.50,    // saldo iniziale alla creazione
+  createdAt: 1726464000000,   // timestamp ms
+  code: "1234 5678 9101 1121" // opzionale: IBAN o numero carta
+}
+```
+
+### Esempio Documento Transazione
+```javascript
+{
+  accountId: "abc123",        // ID del conto associato
+  amount: 85.50,              // importo in euro (≥ 0)
+  kind: "uscita",             // "entrata" | "uscita"
+  category: "cibo",           // chiave da CATEGORIES (cibo, trasporti, casa, ecc.)
+  date: 1726550400000,        // timestamp ms della data
+  note: "Spesa settimanale"   // opzionale
+}
+```
+
+---
+
+## 🧪 Testing
 
 ```bash
 node --experimental-detect-module scripts/finance.spec.mjs
 ```
+Verifica la correttezza della logica pura:
+- Calcolo saldi per conto (`accountBalance`)
+- Somme totali, entrate e uscite
+- Formattazione valuta (`formatCurrency`)
+- Integrità lista categorie (`CATEGORIES.length === 10`)
 
-## Limiti
+---
 
-- App personale, pensata per un singolo utente.
-- Regole Firestore aperte: nessun login, nessuna autenticazione.
-- Su React Native la persistenza offline usa una cache in memoria (IndexedDB non è disponibile): i dati non letti durante la sessione richiedono una connessione per il primo caricamento.
+## 📋 Changelog
+
+- **1.0.0** — Release iniziale:
+  - Home con saldo totale, grafico a torta spese, ultimi 10 movimenti
+  - Movimenti: ricerca, filtri (tipo/conto/categoria/mese), scroll unico, sezione Conto a pill, griglia categorie 4 colonne, stato vuoto con card tratteggiata
+  - Conti: card restilizzate (pallino, etichette tipo, saldo nero/rosso, cestino a destra), riquadro "Totale saldi", barra full-width "Aggiungi conto"
+  - Tipo "Contanti" con formattazione valuta live e cursore prima del simbolo €
+  - IBAN/carta opzionali per conti banca e carta
+  - Modalità offline con banner di stato
+  - Categorie: 10 predefinite (Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Shopping, Altro)
+
+---
+
+## 📋 Roadmap / TODO
+
+- [ ] Autenticazione utente (Firebase Auth)
+- [ ] Regole Firestore per sicurezza (attualmente aperte)
+- [ ] Export/Import dati (CSV/Excel)
+- [ ] Grafici tempororali (trend spese mensili/annuali)
+- [ ] Budget mensili per categoria con alert
+- [ ] Multi-utente con ruoli
+- [ ] Widget Android/iOS per saldo rapido
+- [ ] Backup automatico su Google Drive / iCloud
+
+---
+
+## 🤝 Contribuire
+
+1. Fork del repository
+2. Crea branch feature (`git checkout -b feature/nuova-funzionalita`)
+3. Commit modifiche (`git commit -m 'Aggiunta nuova funzionalità'`)
+4. Push branch (`git push origin feature/nuova-funzionalita`)
+5. Apri Pull Request
+
+---
+
+## 📄 Licenza
+
+Progetto personale - Tutti i diritti riservati.
+
+---
+
+## 👨‍💻 Autore
+
+**Mattia Giroldini** - Sviluppatore  
+Progetto: **Budget Lab** - Gestione personale conti e movimenti finanziari
+
+---
+
+## 📞 Supporto
+
+Per segnalazioni bug o richieste funzionalità:
+- Apri una **Issue** su GitHub
+
+---
+
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.0.0*
