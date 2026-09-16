@@ -9,21 +9,21 @@ export default function useAutoHideSystemBar() {
   const visibility = NavigationBar.useVisibility();
   const hidden = Platform.OS === 'android' && visibility === 'hidden';
 
+  const arm = useCallback(() => {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      try {
+        NavigationBar.setHidden(true);
+      } catch {}
+    }, INACTIVITY_MS);
+  }, []);
+
   useEffect(() => {
     if (Platform.OS !== 'android') return;
 
-    const start = () => {
-      clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        try {
-          NavigationBar.setHidden(true);
-        } catch {}
-      }, INACTIVITY_MS);
-    };
-
-    start();
+    arm();
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') start();
+      if (state === 'active') arm();
     });
 
     return () => {
@@ -33,17 +33,12 @@ export default function useAutoHideSystemBar() {
         NavigationBar.setHidden(false);
       } catch {}
     };
-  }, []);
+  }, [arm]);
 
   const resetTimer = useCallback(() => {
     if (Platform.OS !== 'android') return;
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      try {
-        NavigationBar.setHidden(true);
-      } catch {}
-    }, INACTIVITY_MS);
-  }, []);
+    arm();
+  }, [arm]);
 
   return { hidden, resetTimer };
 }
