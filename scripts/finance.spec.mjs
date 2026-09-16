@@ -16,9 +16,13 @@ const { startMs, endMs } = monthRange(new Date(2026, 8, 15));
 assert.equal(isInRange(d(2026, 9, 1), startMs, endMs), true);
 assert.equal(isInRange(d(2026, 8, 31), startMs, endMs), false);
 
-assert.equal(accountBalance(txs, 'c1'), 60); // 100 - 30 - 10 (il 10 resta nel saldo totale del conto)
+assert.equal(accountBalance(txs, 'c1'), 60); // 100 - 30 - 10
 assert.equal(accountBalance(txs, 'c2'), -20);
 assert.equal(totalBalance(accounts, txs), 40);
+
+const accsIB = [{ id: 'c1', name: 'Conto', initialBalance: 50 }, { id: 'c2', name: 'Contanti' }];
+assert.equal(accountBalance(txs, 'c1', 50), 110);
+assert.equal(totalBalance(accsIB, txs), 90); // (60+50) + (-20)
 
 const cats = expensesByCategory(txs, startMs, endMs);
 assert.deepEqual(cats, [

@@ -12,12 +12,13 @@ export function signedAmount(t) {
   return t.kind === 'income' ? t.amount : -t.amount;
 }
 
-export function accountBalance(transactions, accountId) {
-  return transactions.reduce((sum, t) => (t.accountId === accountId ? sum + signedAmount(t) : sum), 0);
+export function accountBalance(transactions, accountId, initialBalance = 0) {
+  const sum = transactions.reduce((sum, t) => (t.accountId === accountId ? sum + signedAmount(t) : sum), 0);
+  return sum + (initialBalance || 0);
 }
 
 export function totalBalance(accounts, transactions) {
-  return accounts.reduce((sum, a) => sum + accountBalance(transactions, a.id), 0);
+  return accounts.reduce((sum, a) => sum + accountBalance(transactions, a.id, a.initialBalance), 0);
 }
 
 export function expensesByCategory(transactions, startMs, endMs) {
