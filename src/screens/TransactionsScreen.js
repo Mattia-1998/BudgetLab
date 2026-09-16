@@ -87,7 +87,7 @@ export default function TransactionsScreen() {
             </View>
             <View style={styles.filterRow}>
               {[{ value: 'all', label: 'Tutte' }, { value: 'income', label: 'Entrate' }, { value: 'expense', label: 'Uscite' }, { value: 'transfer', label: 'Trasferimenti' }].map((opt) => (
-                <Pressable key={opt.value} style={[styles.pill, kind === opt.value && styles.pillActive]} onPress={() => setKind(opt.value)}>
+                <Pressable key={opt.value} style={[styles.pill, kind === opt.value && styles.pillActive]} onPress={() => { setKind(opt.value); if (opt.value === 'transfer') setCategory('all'); }}>
                   <Text style={[styles.pillText, kind === opt.value && styles.pillTextActive]}>{opt.label}</Text>
                 </Pressable>
               ))}
