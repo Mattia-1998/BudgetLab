@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, FlatList, TextInput, Pressable, Alert, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TextInput, Pressable, Alert, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
@@ -81,7 +81,20 @@ export default function TransactionsScreen() {
         <MonthCarousel month={month} label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)} onPrev={prev} onNext={next} onAll={() => setAllMonths((v) => !v)} allActive={allMonths} />
       </View>
       <View style={styles.filterBlock}>
-        <Segmented options={[{ value: 'all', label: 'Conto: tutti' }, ...accounts.map((a) => ({ value: a.id, label: a.name }))]} value={accountId} onChange={setAccountId} />
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Conto</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sectionRow}>
+            <Pressable style={[styles.pill, accountId === 'all' && styles.pillActive]} onPress={() => setAccountId('all')}>
+              <Text style={[styles.pillText, accountId === 'all' && styles.pillTextActive]}>Tutti i conti</Text>
+            </Pressable>
+            {accounts.map((a) => (
+              <Pressable key={a.id} style={[styles.pill, accountId === a.id && styles.pillActive]} onPress={() => setAccountId(a.id)}>
+                <View style={[styles.dot, { backgroundColor: a.color }]} />
+                <Text style={[styles.pillText, accountId === a.id && styles.pillTextActive]}>{a.name}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
         <Segmented options={[{ value: 'all', label: 'Cat: tutte' }, ...CATEGORIES.map((c) => ({ value: c.key, label: c.label }))]} value={category} onChange={setCategory} />
       </View>
       <FlatList
@@ -119,6 +132,10 @@ const styles = StyleSheet.create({
   pillTextActive: { color: '#fff', fontWeight: '600' },
   monthWrap: { marginHorizontal: 16, marginTop: 10 },
   filterBlock: { paddingHorizontal: 16, marginTop: 8 },
+  section: { marginTop: 16 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, color: colors.textMuted, marginBottom: 8 },
+  sectionRow: { flexDirection: 'row', gap: 8, paddingRight: 16 },
+  dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
   fab: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', elevation: 4 },
 });
