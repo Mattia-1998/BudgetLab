@@ -4,21 +4,32 @@ import { CATEGORY_MAP } from '../constants/categories';
 import { formatCurrency, formatDate } from '../utils/format';
 import { colors } from '../theme/colors';
 
-export default function TransactionItem({ transaction, onPress, onDelete }) {
+export default function TransactionItem({ transaction, onPress, onDelete, accountById }) {
   const cat = CATEGORY_MAP[transaction.category] || CATEGORY_MAP.altro;
   const income = transaction.kind === 'income';
-  const amount = (income ? '+' : '-') + formatCurrency(transaction.amount);
+  const isTransfer = transaction.kind === 'transfer';
+  const amount = isTransfer ? '-'.concat(formatCurrency(transaction.amount)) : (income ? '+' : '-') + formatCurrency(transaction.amount);
+  const srcName = accountById && accountById[transaction.accountId] ? accountById[transaction.accountId].name : 'Conto';
+  const dstName = accountById && accountById[transaction.transferTo] ? accountById[transaction.transferTo].name : 'Conto';
   return (
     <View style={styles.card}>
       <Pressable style={styles.main} onPress={onPress}>
-        <View style={[styles.iconWrap, { backgroundColor: cat.color + '22' }]}>
-          <Ionicons name={cat.icon} size={20} color={cat.color} />
+        <View style={[styles.iconWrap, { backgroundColor: isTransfer ? '#F3F4F6' : cat.color + '22' }]}>
+          <Ionicons name={isTransfer ? 'swap-horizontal-outline' : cat.icon} size={20} color={isTransfer ? '#9CA3AF' : cat.color} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.desc}>{transaction.note || cat.label}</Text>
-          <Text style={styles.sub}>{cat.label} · {formatDate(transaction.date)}</Text>
+          <Text style={styles.desc}>
+            {isTransfer
+              ? transaction.note || (transaction.direction === 'deposito' ? 'Deposito contanti' : 'Prelievo contanti')
+              : transaction.note || cat.label}
+          </Text>
+          <Text style={styles.sub}>
+            {isTransfer
+              ? `${srcName} → ${dstName} · ${formatDate(transaction.date)}`
+              : `${cat.label} · ${formatDate(transaction.date)}`}
+          </Text>
         </View>
-        <Text style={[styles.amount, { color: income ? colors.positive : colors.negative }]}>{amount}</Text>
+        <Text style={[styles.amount, { color: isTransfer ? '#9CA3AF' : (income ? colors.positive : colors.negative) }]}>{amount}</Text>
       </Pressable>
       {onDelete ? (
         <Pressable onPress={onDelete} hitSlop={12} style={styles.delete}>

@@ -61,7 +61,7 @@ export default function HomeScreen() {
           <Text style={styles.empty}>Nessun movimento in questo mese.</Text>
         ) : (
           recent.map((t) => (
-            <TransactionItem key={t.id} transaction={t} onPress={() => { setEditing(t); setModalVisible(true); }} />
+            <TransactionItem key={t.id} transaction={t} onPress={() => { setEditing(t); setModalVisible(true); }} accountById={Object.fromEntries(accounts.map((a) => [a.id, a]))} />
           ))
         )}
       </ScrollView>

@@ -18,7 +18,7 @@ export default function TransactionsScreen() {
   const { accounts, loading: loadingAccts, error: errorAccts } = useAccounts();
   const { transactions, loading: loadingTxs, error: errorTxs } = useTransactions();
   const [query, setQuery] = useState('');
-  const [kind, setKind] = useState('all'); // 'all' | 'income' | 'expense'
+  const [kind, setKind] = useState('all'); // 'all' | 'income' | 'expense' | 'transfer'
   const [accountId, setAccountId] = useState('all');
   const [category, setCategory] = useState('all');
   const [month, setMonth] = useState(() => new Date());
@@ -27,6 +27,7 @@ export default function TransactionsScreen() {
   const [editing, setEditing] = useState(null);
   const { width } = useWindowDimensions();
   const tileWidth = Math.floor((width - 56) / 4); // 32 di padding laterali di filterBlock + 24 di gap (3×8)
+  const accountMap = Object.fromEntries(accounts.map((a) => [a.id, a]));
 
   const filtered = useMemo(() => {
     const range = allMonths ? null : monthRange(month);
@@ -70,6 +71,7 @@ export default function TransactionsScreen() {
             transaction={item}
             onPress={() => { setEditing(item); setModalVisible(true); }}
             onDelete={() => confirmDelete(item)}
+            accountById={accountMap}
           />
         )}
         ListHeaderComponent={
@@ -84,7 +86,7 @@ export default function TransactionsScreen() {
               ) : null}
             </View>
             <View style={styles.filterRow}>
-              {[{ value: 'all', label: 'Tutte' }, { value: 'income', label: 'Entrate' }, { value: 'expense', label: 'Uscite' }].map((opt) => (
+              {[{ value: 'all', label: 'Tutte' }, { value: 'income', label: 'Entrate' }, { value: 'expense', label: 'Uscite' }, { value: 'transfer', label: 'Trasferimenti' }].map((opt) => (
                 <Pressable key={opt.value} style={[styles.pill, kind === opt.value && styles.pillActive]} onPress={() => setKind(opt.value)}>
                   <Text style={[styles.pillText, kind === opt.value && styles.pillTextActive]}>{opt.label}</Text>
                 </Pressable>
@@ -108,24 +110,26 @@ export default function TransactionsScreen() {
                   ))}
                 </ScrollView>
               </View>
-              <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Categoria</Text>
-                <View style={styles.catGrid}>
-                  <Pressable style={[styles.catTileBase, { width: tileWidth }, category === 'all' && styles.catAllActive]} onPress={() => setCategory('all')}>
-                    <Ionicons name="apps-outline" size={22} color={category === 'all' ? '#fff' : colors.textMuted} />
-                    <Text style={[styles.catText, category === 'all' && styles.catTextActive]}>Tutte</Text>
-                  </Pressable>
-                  {CATEGORIES.map((c) => {
-                    const active = category === c.key;
-                    return (
-                      <Pressable key={c.key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setCategory(c.key)}>
-                        <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
-                        <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
-                      </Pressable>
-                    );
-                  })}
+              {kind !== 'transfer' ? (
+                <View style={styles.section}>
+                  <Text style={styles.sectionLabel}>Categoria</Text>
+                  <View style={styles.catGrid}>
+                    <Pressable style={[styles.catTileBase, { width: tileWidth }, category === 'all' && styles.catAllActive]} onPress={() => setCategory('all')}>
+                      <Ionicons name="apps-outline" size={22} color={category === 'all' ? '#fff' : colors.textMuted} />
+                      <Text style={[styles.catText, category === 'all' && styles.catTextActive]}>Tutte</Text>
+                    </Pressable>
+                    {CATEGORIES.map((c) => {
+                      const active = category === c.key;
+                      return (
+                        <Pressable key={c.key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setCategory(c.key)}>
+                          <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
+                          <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                 </View>
-              </View>
+              ) : null}
             </View>
           </View>
         }
