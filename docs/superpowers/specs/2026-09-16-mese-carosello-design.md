@@ -19,7 +19,8 @@ Nuovo componente `src/components/MonthCarousel.js` costruito con primitivi React
 
 - **Centro**: mese corrente, `fontWeight: bold`, colore `colors.text`, dimensione `17`.
 - **Lati**: mese precedente a sinistra, successivo a destra; `opacity: 0.45`, dimensione `13`, lieve `translateY` verso il basso (effetto arretrato). Non selezionabile visivamente come il centro.
-- **Frecce**: ai bordi estremi, dimensione `18`, colore `colors.primary`, tappabili.
+- **Frecce**: ai bordi estremi, dimensione `18`, colore `colors.primary`, tappabili. Sempre esterne all'area dei testi.
+- **Geometria**: il palco (`stage`) occupa tutta la larghezza disponibile tra le frecce (`flex: 1`); i tre mesi vivono in **tre celle flessibili uguali** (`flex: 1`), ciascuna abbastanza larga da contenere il proprio testo laterale per intero. Così i titoli dei mesi non possono sovrapporsi alle frecce su nessuna larghezza di schermo. La larghezza di una cella (`slot`) è misurata a runtime con `onLayout` e usata come distanza di scorrimento. Il centro renderizza per ultimo (sopra i lati) per l'effetto profondità. L'animazione muove **un solo valore condiviso** `translateX` applicato alle tre etichette.
 
 ### Props
 
@@ -39,7 +40,7 @@ Labele dei mesi laterali calcolate internamente con `formatMonthLabel` (es. "Set
 ### Interazioni
 
 - **Tap su mese laterale**: seleziona quel mese (sinistra → `onPrev`, destra → `onNext`).
-- **Swipe orizzontale** (`PanResponder`): scorrimento verso sinistra → mese successivo; verso destra → mese precedente. Soglia `35px` e velocità (flick veloce sotto soglia cambia comunque mese). Animazione `Animated.spring` di spostamento laterale in tempo reale sul fascio dei tre testi (follow del dito), con scatto che mostra i tre testi nella nuova posizione.
+- **Swipe orizzontale** (`PanResponder`): scorrimento verso sinistra → mese successivo; verso destra → mese precedente. Soglia `max(30, 40% della larghezza slot)` e velocità (flick veloce sotto soglia cambia comunque mese). Animazione di spostamento laterale in tempo reale sul fascio dei tre testi (follow del dito), con scatto che fa scorrere i testi di una larghezza slot e mostra i tre testi nella nuova posizione.
 - **Doppio tap sul centro**: invoca `onAll()` (toggle "Tutti i mesi"). Inerte se `onAll` non passato (caso Home).
 - **Stato `allActive`**: swipe disabilitato; mesi laterali visibili ma non tappabili e ulteriormente sfumati; frecce attive (scelgono il mese di riferimento). Il centro mostra `label` ("Tutti i mesi").
 - **Transizione**: ogni cambio mese anima l'ingresso del nuovo centro (fade + slide).
