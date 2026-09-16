@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from '../screens/HomeScreen';
@@ -17,8 +17,6 @@ const TAB_ICONS = {
   Movimenti: 'swap-vertical-outline',
   Conti: 'wallet-outline',
 };
-
-const AnimatedTabBar = Animated.createAnimatedComponent(BottomTabBar);
 
 export default function AppNavigator() {
   const insets = useSafeAreaInsets();
@@ -37,15 +35,15 @@ export default function AppNavigator() {
     <View style={styles.root} onTouchStart={resetTimer}>
       <NavigationContainer>
         <Tab.Navigator
-          tabBar={(props) => (
-            <AnimatedTabBar {...props} style={[props.style, { paddingBottom: padAnim }]} />
-          )}
           screenOptions={({ route }) => ({
             tabBarIcon: ({ color, size }) => (
               <Ionicons name={TAB_ICONS[route.name]} size={size} color={color} />
             ),
             tabBarActiveTintColor: colors.primary,
             headerTitleAlign: 'center',
+            tabBarStyle: {
+              paddingBottom: padAnim,
+            },
           })}
         >
           <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
