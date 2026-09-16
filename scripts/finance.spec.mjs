@@ -33,6 +33,26 @@ assert.deepEqual(cats, [
 assert.equal(sumByKind(txs, 'income', startMs, endMs), 100);
 assert.equal(sumByKind(txs, 'expense', startMs, endMs), 60);
 
+const prelievo = [
+  { id: 'p1', accountId: 'c1', transferTo: 'c2', amount: 50, kind: 'transfer', direction: 'prelievo', date: d(2026, 9, 8) },
+];
+assert.equal(accountBalance([...txs, ...prelievo], 'c1'), 10);   // 60 - 50
+assert.equal(accountBalance([...txs, ...prelievo], 'c2'), 30);   // -20 + 50
+assert.equal(totalBalance(accounts, [...txs, ...prelievo]), 40); // totale invariato
+
+const deposito = [
+  { id: 'd1', accountId: 'c2', transferTo: 'c1', amount: 25, kind: 'transfer', direction: 'deposito', date: d(2026, 9, 8) },
+];
+assert.equal(accountBalance([...txs, ...deposito], 'c1'), 85);   // 60 + 25
+assert.equal(accountBalance([...txs, ...deposito], 'c2'), -45);  // -20 - 25
+assert.equal(totalBalance(accounts, [...txs, ...deposito]), 40); // totale invariato
+
+const all = [...txs, ...prelievo, ...deposito];
+const catsAll = expensesByCategory(all, startMs, endMs).reduce((s, i) => s + i.total, 0);
+assert.equal(catsAll, 60); // i trasferimenti non compaiono come spese
+assert.equal(sumByKind(all, 'income', startMs, endMs), 100);
+assert.equal(sumByKind(all, 'expense', startMs, endMs), 60);
+
 assert.equal(CATEGORIES.length, 11);
 assert.equal(CATEGORY_MAP.stipendio.label, 'Stipendio');
 assert.equal(CATEGORY_MAP.stipendio.icon, 'cash-outline');
