@@ -3,10 +3,28 @@ import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, Keyboa
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { colors } from '../theme/colors';
+import { formatCurrency } from '../utils/format';
 
-const TYPES = ['carta', 'banca'];
-const TYPE_LABELS = { carta: 'Carta', banca: 'Banca' };
+const TYPES = ['carta', 'banca', 'contanti'];
+const TYPE_LABELS = { carta: 'Carta', banca: 'Banca', contanti: 'Contanti' };
 const COLORS = ['#4F46E5', '#2563EB', '#7C3AED', '#9333EA', '#0EA5E9', '#37474F'];
+
+function formatInputCurrency(text) {
+  const hasComma = /,/.test(text);
+  const clean = text.replace(/[^\d,]/g, '');
+  const [intRaw = '', ...decParts] = clean.split(',');
+  const dec = decParts.join('').slice(0, 2);
+  const int = intRaw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const suffix = hasComma ? (dec === '' ? ',' : ',' + dec) : '';
+  const out = int + suffix;
+  return out ? out + ' €' : '';
+}
+
+function parseCurrencyInput(text) {
+  const cleaned = text.replace(/[^\d,]/g, '').replace(',', '.');
+  const value = parseFloat(cleaned);
+  return Number.isNaN(value) ? 0 : value;
+}
 
 export default function AccountFormModal({ visible, onClose, initial }) {
   const [name, setName] = useState('');
@@ -19,7 +37,7 @@ export default function AccountFormModal({ visible, onClose, initial }) {
 
   const syncState = () => {
     setName(initial ? initial.name : '');
-    setInitialBalance(initial ? String(initial.initialBalance ?? '') : '');
+    setInitialBalance(initial ? formatCurrency(initial.initialBalance) : '');
     setType(initial ? initial.type : TYPES[0]);
     setColor(initial ? initial.color : COLORS[0]);
     setCode(initial ? (initial.code ?? '') : '');
@@ -31,8 +49,8 @@ export default function AccountFormModal({ visible, onClose, initial }) {
       setError('Inserisci un nome');
       return;
     }
-    const parsed = parseFloat(initialBalance.replace(',', '.'));
-    if (initialBalance.trim() !== '' && isNaN(parsed)) {
+    const parsed = parseCurrencyInput(initialBalance);
+    if (initialBalance.trim() !== '' && parsed === 0 && !/[\d]/.test(initialBalance)) {
       setError('Inserisci un saldo valido (es. 100,00)');
       return;
     }
@@ -66,8 +84,9 @@ export default function AccountFormModal({ visible, onClose, initial }) {
             style={styles.input}
             placeholder="Saldo iniziale (es. 100,00)"
             value={initialBalance}
-            onChangeText={setInitialBalance}
-            keyboardType="numeric"
+            onChangeText={(v) => setInitialBalance(formatInputCurrency(v))}
+            keyboardType="decimal-pad"
+            selection={{ start: Math.max(0, initialBalance.length - 2), end: Math.max(0, initialBalance.length - 2) }}
           />
           <View style={styles.typeRow}>
             {TYPES.map((t) => (
@@ -76,13 +95,15 @@ export default function AccountFormModal({ visible, onClose, initial }) {
               </Pressable>
             ))}
           </View>
-          <TextInput
-            style={styles.input}
-            placeholder={type === 'banca' ? 'IBAN (es. IT60X0542811101000000123456)' : 'Numero carta (es. 1234 5678 9101 1121)'}
-            value={code}
-            onChangeText={setCode}
-            autoCapitalize="characters"
-          />
+          {type !== 'contanti' ? (
+            <TextInput
+              style={styles.input}
+              placeholder={type === 'banca' ? 'IBAN (es. IT60X0542811101000000123456)' : 'Numero carta (es. 1234 5678 9101 1121)'}
+              value={code}
+              onChangeText={setCode}
+              autoCapitalize="characters"
+            />
+          ) : null}
           <View style={styles.colorRow}>
             {COLORS.map((c) => (
               <Pressable key={c} style={[styles.colorDot, { backgroundColor: c }, color === c && styles.colorDotActive]} onPress={() => setColor(c)} />
