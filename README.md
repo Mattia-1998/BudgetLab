@@ -1,10 +1,10 @@
 # Budget Lab
 
-**Versione:** 1.0.0  
+**Versione:** 1.1.0  
 **Piattaforma:** React Native (Expo)  
 **Backend:** Firebase  
 
-App mobile personale per la gestione di conti e movimenti finanziari, costruita con React Native ed Expo. I dati vengono sincronizzati su Cloud Firestore in tempo reale. Permette di gestire conti bancari, movimenti in entrata e uscita, grafici delle spese per categoria, e monitorare la connessione con bufferizzazione offline.
+App mobile personale per la gestione di conti e movimenti finanziari, costruita con React Native ed Expo. I dati vengono sincronizzati su Cloud Firestore in tempo reale. Permette di gestire conti bancari, movimenti in entrata e uscita, trasferimenti Prelievo/Deposito tra conti, grafici delle spese per categoria, e monitorare la connessione con bufferizzazione offline.
 
 ---
 
@@ -18,9 +18,11 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 
 ### 📋 Movimenti
 - Ricerca libera per titolo/nota
-- Filtri combinabili: tipo (entrate/uscite), conto, categoria, mese
+- Filtri combinabili: tipo (entrate/uscite/trasferimenti), conto, categoria, mese
 - MonthCarousel per scorrere i mesi
 - Aggiunta, modifica e eliminazione movimenti
+- Trasferimenti **Prelievo/Deposito** con controparte Contanti selezionabile (o creata automaticamente)
+- Trasferimenti mostrati in grigio neutro con percorso "sorgente → destinazione"
 - Sezione "Conto" a pill con pallino colore del conto associato
 - Griglia categorie a 4 colonne con tile "Tutte" in stile scuro
 - Scroll unico con intestazione e lista nel `ListHeaderComponent`
@@ -34,7 +36,7 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 - Barra full-width "Aggiungi conto" con modale creazione/modifica
 
 ### 📊 Categorie di spesa
-10 categorie predefinite: Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Shopping, Altro — ciascuna con icona e colore dedicati.
+11 categorie predefinite: Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Stipendio, Shopping, Altro — ciascuna con icona e colore dedicati. Lo Stipendio è pensato per le entrate.
 
 ### 🔌 Modalità offline
 - Indicatore di connessione in tempo reale (tramite `expo-network`)
@@ -207,10 +209,23 @@ Cobol/
 {
   accountId: "abc123",        // ID del conto associato
   amount: 85.50,              // importo in euro (≥ 0)
-  kind: "uscita",             // "entrata" | "uscita"
+  kind: "expense",            // "income" | "expense"
   category: "cibo",           // chiave da CATEGORIES (cibo, trasporti, casa, ecc.)
   date: 1726550400000,        // timestamp ms della data
   note: "Spesa settimanale"   // opzionale
+}
+```
+
+### Esempio Documento Trasferimento
+```javascript
+{
+  kind: "transfer",           // terza tipologia
+  direction: "prelievo",      // "prelievo" (conto → Contanti) | "deposito" (Contanti → conto)
+  accountId: "carta123",      // ID del conto sorgente (i soldi escono)
+  transferTo: "contanti123",  // ID del conto destinazione (i soldi arrivano)
+  amount: 50,                 // importo in euro (≥ 0)
+  date: 1726550400000,        // timestamp ms della data
+  note: "Bancomat"            // opzionale (nessuna categoria)
 }
 ```
 
@@ -225,11 +240,19 @@ Verifica la correttezza della logica pura:
 - Calcolo saldi per conto (`accountBalance`)
 - Somme totali, entrate e uscite
 - Formattazione valuta (`formatCurrency`)
-- Integrità lista categorie (`CATEGORIES.length === 10`)
+- Integrità lista categorie (`CATEGORIES.length === 11`)
 
 ---
 
 ## 📋 Changelog
+
+- **1.1.0** — Trasferimenti e saldi contanti:
+  - Terza tipologia di movimento **Prelievo/Deposito**: trasferimento tra un conto non-contanti e il conto Contanti (auto-creato se mancante)
+  - Selezione esplicita del conto **Contanti** controparte quando esistono più conti contanti (preselezionato il primo)
+  - Trasferimenti in lista con icona e importo grigi, percorso "sorgente → destinazione" e filtro dedicato "Trasferimenti"
+  - Saldi aggiornati su entrambi i lati (conto sorgente e destinazione), esclusi da grafico e riepiloghi mensili
+  - Nuova categoria **Stipendio** (11 categorie totali)
+  - In modifica, direzione e conti del trasferimento restano fissi (solo importo, data e nota)
 
 - **1.0.0** — Release iniziale:
   - Home con saldo totale, grafico a torta spese, ultimi 10 movimenti
@@ -285,4 +308,4 @@ Per segnalazioni bug o richieste funzionalità:
 
 ---
 
-*Ultimo aggiornamento: Settembre 2026 - Versione 1.0.0*
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.1.0*
