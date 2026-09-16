@@ -5,6 +5,8 @@ export const CATEGORIES = [
   { key: 'bollette', label: 'Bollette', icon: 'receipt-outline', color: '#00897B' },
   { key: 'salute', label: 'Salute', icon: 'medical-outline', color: '#E53935' },
   { key: 'svago', label: 'Svago', icon: 'game-controller-outline', color: '#FB8C00' },
+  { key: 'sport', label: 'Sport', icon: 'football-outline', color: '#1565C0' },
+  { key: 'auto', label: 'Auto', icon: 'car-sport-outline', color: '#6D4C41' },
   { key: 'shopping', label: 'Shopping', icon: 'bag-handle-outline', color: '#43A047' },
   { key: 'altro', label: 'Altro', icon: 'ellipsis-horizontal-outline', color: '#757575' },
 ];

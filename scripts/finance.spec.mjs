@@ -33,7 +33,7 @@ assert.deepEqual(cats, [
 assert.equal(sumByKind(txs, 'income', startMs, endMs), 100);
 assert.equal(sumByKind(txs, 'expense', startMs, endMs), 60);
 
-assert.equal(CATEGORIES.length, 8);
+assert.equal(CATEGORIES.length, 10);
 assert.equal(CATEGORY_MAP.cibo.label, 'Cibo');
 assert.equal(formatCurrency(12.5), '12,50\u00a0€');
 
