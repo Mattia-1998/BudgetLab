@@ -51,7 +51,7 @@ export default function TransactionsScreen() {
   const confirmDelete = (t) =>
     Alert.alert('Elimina movimento', 'Eliminare questo movimento?', [
       { text: 'Annulla', style: 'cancel' },
-      { text: 'Elimina', style: 'destructive', onPress: () => deleteDoc(doc(db, 'transactions', t.id)) },
+      { text: 'Elimina', style: 'destructive', onPress: () => deleteDoc(doc(db, 'transactions', t.id)).catch((e) => Alert.alert('Errore', 'Impossibile eliminare il movimento: ' + e.message)) },
     ]);
 
   const prev = () => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));

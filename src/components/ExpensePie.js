@@ -22,7 +22,7 @@ export default function ExpensePie({ transactions, startMs, endMs }) {
       <PieChart data={slices} donut radius={90} innerRadius={55} focusOnPress />
       <View style={styles.legend}>
         {data.map((d) => {
-          const cat = CATEGORY_MAP[d.category];
+          const cat = CATEGORY_MAP[d.category] || CATEGORY_MAP.altro;
           return (
             <View key={d.category} style={styles.legendRow}>
               <View style={[styles.swatch, { backgroundColor: cat.color }]} />

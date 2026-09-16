@@ -22,7 +22,7 @@ export default function AccountsScreen() {
   const confirmDelete = (acc) => {
     Alert.alert('Elimina conto', `Eliminare "${acc.name}"? I movimenti collegati resteranno ma senza conto.`, [
       { text: 'Annulla', style: 'cancel' },
-      { text: 'Elimina', style: 'destructive', onPress: () => deleteDoc(doc(db, 'accounts', acc.id)) },
+      { text: 'Elimina', style: 'destructive', onPress: () => deleteDoc(doc(db, 'accounts', acc.id)).catch((e) => Alert.alert('Errore', 'Impossibile eliminare il conto: ' + e.message)) },
     ]);
   };
 
