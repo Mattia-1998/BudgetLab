@@ -8,7 +8,7 @@ Scopo: skin dell'app sul tono indaco/violaceo, con i colori centralizzati in un'
 | Costante      | Valore     | Uso                                                        |
 |---------------|------------|------------------------------------------------------------|
 | `primary`     | `#4F46E5`  | Pulsanti Salva, FAB, chip attivi, tab attivo, chevron mese |
-| `positive`    | `#4F46E5`  | Totali, saldi e importi positivi (entrate)                 |
+| `positive`    | `#1B5E20`  | Totali, saldi e importi positivi (entrate) — verde          |
 | `negative`    | `#C62828`  | Errori, negativi, uscite, icona cestino                     |
 | `background`  | `#F5F5F5`  | Sfondo delle schermate                                      |
 | `surface`     | `#FFFFFF`  | Card e modali                                               |
