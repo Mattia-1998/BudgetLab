@@ -101,7 +101,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
           <Segmented
             options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }, { value: 'transfer', label: 'Prelievo/Deposito' }]}
             value={kind}
-            onChange={setKind}
+            onChange={(v) => { setKind(v); if (v === 'transfer' && !isEdit) setAccountId(null); }}
           />
           {kind === 'transfer' && !isEdit ? (
             <Segmented
