@@ -46,18 +46,19 @@ export default function AccountsScreen() {
         keyExtractor={(a) => a.id}
         renderItem={({ item }) => {
           const bal = accountBalance(transactions, item.id, item.initialBalance);
+          const balColor = bal >= 0 ? '#111827' : colors.negative;
           return (
-            <Pressable style={styles.card} onPress={() => openEdit(item)} onLongPress={() => confirmDelete(item)}>
+            <Pressable style={styles.card} onPress={() => openEdit(item)}>
               <View style={[styles.dot, { backgroundColor: item.color }]} />
               <View style={styles.cardBody}>
                 <Text style={styles.cardName}>{item.name}</Text>
-                <Text style={styles.cardType}>{item.type}</Text>
+                <Text style={styles.cardType}>{TYPE_LABELS[item.type] || item.type}</Text>
                 {item.code ? <Text style={styles.cardCode}>{item.code}</Text> : null}
               </View>
-              <Pressable onPress={() => confirmDelete(item)} hitSlop={12}>
-                <Ionicons name="trash-outline" size={20} color={colors.negative} />
+              <Text style={[styles.cardBalance, { color: balColor }]}>{formatCurrency(bal)}</Text>
+              <Pressable onPress={() => confirmDelete(item)} hitSlop={12} style={styles.cardDelete}>
+                <Ionicons name="trash-outline" size={20} color="#9CA3AF" />
               </Pressable>
-              <Text style={[styles.cardBalance, { color: bal >= 0 ? colors.positive : colors.negative }]}>{formatCurrency(bal)}</Text>
             </Pressable>
           );
         }}
@@ -79,13 +80,14 @@ const styles = StyleSheet.create({
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 16, marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB' },
   totalLabel: { fontSize: 14, fontWeight: '500', color: '#6B7280' },
   totalValue: { fontSize: 18, fontWeight: '700' },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, padding: 16, borderRadius: 12, gap: 12 },
-  dot: { width: 14, height: 14, borderRadius: 7 },
-  cardBody: { flex: 1 },
-  cardName: { fontSize: 16, fontWeight: '600' },
-  cardType: { fontSize: 13, color: '#888', textTransform: 'capitalize' },
-  cardCode: { fontSize: 13, color: '#888', marginTop: 2 },
-  cardBalance: { fontSize: 16, fontWeight: '700' },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 10, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB' },
+  dot: { width: 12, height: 12, borderRadius: 6 },
+  cardBody: { flex: 1, marginLeft: 10 },
+  cardName: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  cardType: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  cardCode: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  cardBalance: { fontSize: 14, fontWeight: '700', marginRight: 12 },
+  cardDelete: { paddingLeft: 4 },
   empty: { textAlign: 'center', marginTop: 40, color: '#888' },
   add: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, margin: 16, padding: 14, borderRadius: 12, gap: 6 },
   addText: { color: '#fff', fontWeight: '600' },
