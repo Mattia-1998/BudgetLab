@@ -8,6 +8,7 @@ export const CATEGORIES = [
   { key: 'sport', label: 'Sport', icon: 'football-outline', color: '#1565C0' },
   { key: 'auto', label: 'Auto', icon: 'car-sport-outline', color: '#6D4C41' },
   { key: 'shopping', label: 'Shopping', icon: 'bag-handle-outline', color: '#43A047' },
+  { key: 'stipendio', label: 'Stipendio', icon: 'cash-outline', color: '#00838F' },
   { key: 'altro', label: 'Altro', icon: 'ellipsis-horizontal-outline', color: '#757575' },
 ];
 
