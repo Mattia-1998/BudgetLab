@@ -1,6 +1,6 @@
 # Budget Lab
 
-**Versione:** 1.2.0  
+**Versione:** 1.3.0  
 **Piattaforma:** React Native (Expo)  
 **Backend:** Firebase  
 
@@ -19,12 +19,12 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 ### 📋 Movimenti
 - Ricerca libera per titolo/nota
 - Filtri combinabili: tipo (entrate/uscite/trasferimenti), conto, categoria, mese
+- **Multi-selezione categorie**: più categorie insieme (filtro OR), riga a posizione fissa `[Tutte] [Cibo] [Trasporti] [⌄]`, griglia espandibile con le restanti 9 (wrap da 4), freccia illuminata con filtro attivo
 - MonthCarousel per scorrere i mesi
 - Aggiunta, modifica e eliminazione movimenti
 - Trasferimenti **Prelievo/Deposito** con controparte Contanti selezionabile (o creata automaticamente)
 - Trasferimenti mostrati in grigio neutro con percorso "sorgente → destinazione"
 - Sezione "Conto" a pill con pallino colore del conto associato
-- Griglia categorie a 4 colonne con tile "Tutte" in stile scuro
 - Scroll unico con intestazione e lista nel `ListHeaderComponent`
 
 ### 💳 Conti
@@ -247,6 +247,13 @@ Verifica la correttezza della logica pura:
 
 ## 📋 Changelog
 
+- **1.3.0** — Multi-selezione categorie e nuove icone:
+  - Selezionabili più categorie insieme nella schermata Movimenti (filtro OR): i movimenti mostrati appartengono ad almeno una categoria selezionata
+  - Riga categorie a posizione fissa `[Tutte] [Cibo] [Trasporti] [⌄]`: le tile non si riordinano più alla selezione
+  - Freccia "mostra di più" che espande la griglia con le restanti 9 categorie (wrap da 4) e si illumina quando è attivo un filtro con menu chiuso
+  - "Tutte" azzera la selezione; al passaggio al filtro Trasferimenti la sezione Categoria viene nascosta e la selezione azzerata
+  - Nuove icone app e icona adattiva Android; rimossi sfondo, monochrome, favicon e splash non utilizzati
+
 - **1.2.0** — Palette colori ampliata, UX input e barra di navigazione:
   - **12 colori** per i conti (da 6): aggiunte prima riga integra le tinte viola/blu, seconda riga con verde, rosso, giallo, arancione, rosa e teal
   - Placeholder dei campi input ora visibili (hint grigi su sfondo bianco in modali e ricerca movimenti)
@@ -317,4 +324,4 @@ Per segnalazioni bug o richieste funzionalità:
 
 ---
 
-*Ultimo aggiornamento: Settembre 2026 - Versione 1.2.0*
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.3.0*
