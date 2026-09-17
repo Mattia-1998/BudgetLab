@@ -5,7 +5,7 @@ import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
-import { CATEGORY_MAP, orderedCategoryKeys } from '../constants/categories';
+import { CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategoryFilter } from '../constants/categories';
 import { monthRange, isInRange } from '../utils/finance';
 import { formatMonthLabel } from '../utils/format';
 import TransactionItem from '../components/TransactionItem';
@@ -20,7 +20,7 @@ export default function TransactionsScreen() {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('all'); // 'all' | 'income' | 'expense' | 'transfer'
   const [accountId, setAccountId] = useState('all');
-  const [category, setCategory] = useState('all');
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [month, setMonth] = useState(() => new Date());
   const [allMonths, setAllMonths] = useState(false);
@@ -29,7 +29,7 @@ export default function TransactionsScreen() {
   const { width } = useWindowDimensions();
   const tileWidth = Math.floor((width - 56) / 4); // 32 di padding laterali di filterBlock + 24 di gap (3×8)
   const accountMap = Object.fromEntries(accounts.map((a) => [a.id, a]));
-  const { central, rest } = orderedCategoryKeys(category);
+  const { central, rest } = orderedCategoryKeys();
 
   const filtered = useMemo(() => {
     const range = allMonths ? null : monthRange(month);
@@ -38,7 +38,7 @@ export default function TransactionsScreen() {
       .filter((t) => {
         if (kind !== 'all' && t.kind !== kind) return false;
         if (accountId !== 'all' && t.accountId !== accountId) return false;
-        if (category !== 'all' && t.category !== category) return false;
+        if (!matchesCategoryFilter(selectedCategories, t.category)) return false;
         if (range && !isInRange(t.date, range.startMs, range.endMs)) return false;
         if (q) {
           const catLabel = (CATEGORY_MAP[t.category] || CATEGORY_MAP.altro).label.toLowerCase();
@@ -48,7 +48,7 @@ export default function TransactionsScreen() {
         return true;
       })
       .sort((a, b) => b.date - a.date);
-  }, [transactions, query, kind, accountId, category, month, allMonths]);
+  }, [transactions, query, kind, accountId, selectedCategories, month, allMonths]);
 
   if (loadingAccts || loadingTxs) return <View style={styles.center}><ActivityIndicator size="large" /></View>;
   if (errorAccts || errorTxs) return <View style={styles.center}><Text style={styles.errorText}>Errore Firestore</Text></View>;
@@ -94,7 +94,7 @@ export default function TransactionsScreen() {
             </View>
             <View style={styles.filterRow}>
               {[{ value: 'all', label: 'Tutte' }, { value: 'income', label: 'Entrate' }, { value: 'expense', label: 'Uscite' }, { value: 'transfer', label: 'Trasferimenti' }].map((opt) => (
-                <Pressable key={opt.value} style={[styles.pill, kind === opt.value && styles.pillActive]} onPress={() => { setKind(opt.value); if (opt.value === 'transfer') setCategory('all'); }}>
+                <Pressable key={opt.value} style={[styles.pill, kind === opt.value && styles.pillActive]} onPress={() => { setKind(opt.value); if (opt.value === 'transfer') setSelectedCategories([]); }}>
                   <Text style={[styles.pillText, kind === opt.value && styles.pillTextActive]}>{opt.label}</Text>
                 </Pressable>
               ))}
@@ -121,29 +121,29 @@ export default function TransactionsScreen() {
                 <View style={styles.section}>
                   <Text style={styles.sectionLabel}>Categoria</Text>
                   <View style={styles.catGrid}>
-                    <Pressable style={[styles.catTileBase, { width: tileWidth }, category === 'all' && styles.catAllActive]} onPress={() => setCategory('all')}>
-                      <Ionicons name="apps-outline" size={22} color={category === 'all' ? '#fff' : colors.textMuted} />
-                      <Text style={[styles.catText, category === 'all' && styles.catTextActive]}>Tutte</Text>
+                    <Pressable style={[styles.catTileBase, { width: tileWidth }, selectedCategories.length === 0 && styles.catAllActive]} onPress={() => setSelectedCategories([])}>
+                      <Ionicons name="apps-outline" size={22} color={selectedCategories.length === 0 ? '#fff' : colors.textMuted} />
+                      <Text style={[styles.catText, selectedCategories.length === 0 && styles.catTextActive]}>Tutte</Text>
                     </Pressable>
                     {central.map((key) => {
                       const c = CATEGORY_MAP[key];
-                      const active = category === key;
+                      const active = selectedCategories.includes(key);
                       return (
-                        <Pressable key={key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setCategory(key)}>
+                        <Pressable key={key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setSelectedCategories((s) => toggleCategory(s, key))}>
                           <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
                           <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
                         </Pressable>
                       );
                     })}
-                    <Pressable style={[styles.catTileArrow, { width: tileWidth }]} onPress={toggleCategories}>
-                      <Ionicons name={categoriesExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={colors.textMuted} />
+                    <Pressable style={[styles.catTileArrow, { width: tileWidth }, !categoriesExpanded && hasSelectedCategories(selectedCategories) && styles.catTileArrowActive]} onPress={toggleCategories}>
+                      <Ionicons name={categoriesExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={!categoriesExpanded && hasSelectedCategories(selectedCategories) ? '#fff' : colors.textMuted} />
                     </Pressable>
                     {categoriesExpanded
                       ? rest.map((key) => {
                           const c = CATEGORY_MAP[key];
-                          const active = category === key;
+                          const active = selectedCategories.includes(key);
                           return (
-                            <Pressable key={key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setCategory(key)}>
+                            <Pressable key={key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setSelectedCategories((s) => toggleCategory(s, key))}>
                               <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
                               <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
                             </Pressable>
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
   catTileBase: { height: 78, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', gap: 4 },
   catAllActive: { backgroundColor: '#111827', borderColor: '#111827' },
   catTileArrow: { height: 78, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  catTileArrowActive: { backgroundColor: '#111827', borderColor: '#111827' },
   catText: { fontSize: 11, fontWeight: '500', color: '#374151' },
   catTextActive: { color: '#fff', fontWeight: '600' },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
