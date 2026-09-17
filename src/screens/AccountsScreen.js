@@ -193,7 +193,11 @@ export default function AccountsScreen() {
                   style={styles.card}
                   onPress={() => { if (!drag.active) openEdit(item); }}
                   onLongPress={() => startDrag(item, index)}
-                  onPressOut={() => { if (drag.active && !drag.granted) finishDrag(); }}
+                  onPressOut={() => {
+                    setTimeout(() => {
+                      if (drag.active && !drag.granted) finishDrag();
+                    }, 0);
+                  }}
                 >
                   {renderCardContent(item, true)}
                 </Pressable>
