@@ -2,7 +2,7 @@
 
 ## Obiettivo
 
-La sezione Categoria della schermata Movimenti oggi è un menu espandibile con header cliccabile e griglia 4×3: l'utente non lo gradisce. Al suo posto una **singola riga di caselle categoria**, sempre visibile: prima casella **Tutte**, ultima casella una **freccia** che espande mostrando le altre icone (stile "mostra di più").
+La sezione Categoria della schermata Movimenti oggi è una griglia di tile (12 caselle in 4 colonne) sempre visibile che occupa troppo spazio e copre i movimenti sottostanti. Al suo posto una **singola riga di caselle categoria**, sempre visibile: prima casella **Tutte**, ultima casella una **freccia** che espande mostrando le altre icone (stile "mostra di più").
 
 ## Comportamento
 
