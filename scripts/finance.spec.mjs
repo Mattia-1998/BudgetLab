@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind } from '../src/utils/finance.js';
+import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder } from '../src/utils/finance.js';
 import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategoryFilter } from '../src/constants/categories.js';
 import { formatCurrency } from '../src/utils/format.js';
 
@@ -78,5 +78,41 @@ assert.equal(matchesCategoryFilter([], 'cibo'), true);        // set vuoto = nes
 assert.equal(matchesCategoryFilter(['cibo'], 'cibo'), true);
 assert.equal(matchesCategoryFilter(['cibo'], 'trasporti'), false);
 assert.equal(matchesCategoryFilter(['cibo', 'trasporti'], 'trasporti'), true);
+
+assert.deepEqual(
+  sortAccountsByOrder([
+    { id: 'b', name: 'B', order: 2 },
+    { id: 'c', name: 'C', order: 0 },
+    { id: 'a', name: 'A', order: 1 },
+  ]).map((a) => a.id),
+  ['c', 'a', 'b']
+);
+
+assert.deepEqual(
+  sortAccountsByOrder([
+    { id: 'old1', name: 'Old1', createdAt: 200 },
+    { id: 'a', name: 'A', order: 5, createdAt: 50 },
+    { id: 'old2', name: 'Old2', createdAt: 100 },
+    { id: 'b', name: 'B', order: 3, createdAt: 60 },
+  ]).map((a) => a.id),
+  ['b', 'a', 'old2', 'old1']
+);
+
+assert.deepEqual(
+  sortAccountsByOrder([
+    { id: 'x', name: 'X', order: 1, createdAt: 200 },
+    { id: 'y', name: 'Y', order: 1, createdAt: 100 },
+  ]).map((a) => a.id),
+  ['y', 'x']
+);
+
+const inputOrder = [{ id: 'b', order: 2 }, { id: 'a', order: 1 }];
+const inputSnapshot = inputOrder.map((a) => ({ ...a, order: a.order }));
+sortAccountsByOrder(inputOrder);
+assert.deepEqual(inputOrder, inputSnapshot);
+
+assert.equal(nextAccountOrder([]), 0);
+assert.equal(nextAccountOrder([{ id: 'a', order: 0 }, { id: 'b' }]), 1);
+assert.equal(nextAccountOrder([{ id: 'a', order: 4 }, { id: 'b', order: 0 }]), 5);
 
 console.log('Tutti i controlli di finanza/format/categorie passano.');

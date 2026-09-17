@@ -45,3 +45,15 @@ export function sumByKind(transactions, kind, startMs, endMs) {
     0
   );
 }
+
+export function sortAccountsByOrder(accounts) {
+  const withOrder = accounts.filter((a) => typeof a.order === 'number');
+  const withoutOrder = accounts.filter((a) => typeof a.order !== 'number');
+  withOrder.sort((a, b) => a.order - b.order || (a.createdAt || 0) - (b.createdAt || 0));
+  withoutOrder.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  return [...withOrder, ...withoutOrder];
+}
+
+export function nextAccountOrder(accounts) {
+  return accounts.reduce((m, a) => (typeof a.order === 'number' ? Math.max(m, a.order) : m), -1) + 1;
+}
