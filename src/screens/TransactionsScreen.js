@@ -78,7 +78,7 @@ export default function TransactionsScreen() {
           <View>
             <View style={styles.searchWrap}>
               <Ionicons name="search-outline" size={18} color={colors.faintText} style={styles.searchIcon} />
-              <TextInput style={styles.search} placeholder="Cerca per categoria o nota..." value={query} onChangeText={setQuery} />
+              <TextInput style={styles.search} placeholder="Cerca per categoria o nota..." placeholderTextColor={colors.faintText} value={query} onChangeText={setQuery} />
               {query ? (
                 <Pressable style={styles.searchClear} onPress={() => setQuery('')} hitSlop={8}>
                   <Ionicons name="close-circle" size={18} color={colors.faintText} />

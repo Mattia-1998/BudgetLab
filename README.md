@@ -1,6 +1,6 @@
 # Budget Lab
 
-**Versione:** 1.1.0  
+**Versione:** 1.2.0  
 **Piattaforma:** React Native (Expo)  
 **Backend:** Firebase  
 
@@ -34,6 +34,7 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 - Cestino diretto sulla card per eliminazione
 - Riquadro "Totale saldi" con saldo totale di tutti i conti
 - Barra full-width "Aggiungi conto" con modale creazione/modifica
+- **12 palette colori** selezionabili per conto su due righe (viola, blu, verde, rosso, giallo, arancione e altri)
 
 ### 📊 Categorie di spesa
 11 categorie predefinite: Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Stipendio, Shopping, Altro — ciascuna con icona e colore dedicati. Lo Stipendio è pensato per le entrate.
@@ -246,6 +247,14 @@ Verifica la correttezza della logica pura:
 
 ## 📋 Changelog
 
+- **1.2.0** — Palette colori ampliata, UX input e barra di navigazione:
+  - **12 colori** per i conti (da 6): aggiunte prima riga integra le tinte viola/blu, seconda riga con verde, rosso, giallo, arancione, rosa e teal
+  - Placeholder dei campi input ora visibili (hint grigi su sfondo bianco in modali e ricerca movimenti)
+  - Tab bar fissa ancorata al fondo con stripe nera in corrispondenza della barra di navigazione Android
+  - Safe area insets applicati alle modali (spazio corretto sotto i contenuti su device con barra gesture)
+  - `expo-dev-client` in dev; build debug e release installabili insieme (`applicationIdSuffix .debug`)
+  - Rimosso l'auto-hide della barra di sistema Android (sostituito da barra di navigazione nera fissa via plugin `withBlackNavigationBar`)
+
 - **1.1.0** — Trasferimenti e saldi contanti:
   - Terza tipologia di movimento **Prelievo/Deposito**: trasferimento tra un conto non-contanti e il conto Contanti (auto-creato se mancante)
   - Selezione esplicita del conto **Contanti** controparte quando esistono più conti contanti (preselezionato il primo)
@@ -308,4 +317,4 @@ Per segnalazioni bug o richieste funzionalità:
 
 ---
 
-*Ultimo aggiornamento: Settembre 2026 - Versione 1.1.0*
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.2.0*

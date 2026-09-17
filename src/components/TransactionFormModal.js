@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
@@ -20,6 +21,7 @@ const toDmy = (ts) => {
 };
 
 export default function TransactionFormModal({ visible, onClose, accounts, initial }) {
+  const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState('expense');
   const [direction, setDirection] = useState('prelievo');
@@ -114,7 +116,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   return (
     <Modal visible={visible} transparent animationType="slide" onShow={syncState} onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.kaView, { paddingBottom: insets.bottom }]}>
           <ScrollView style={styles.card}>
           <Text style={styles.title}>{isEdit ? 'Modifica movimento' : 'Nuovo movimento'}</Text>
           <Segmented
@@ -132,6 +134,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
           <TextInput
             style={styles.input}
             placeholder="Importo (es. 12,50)"
+            placeholderTextColor={colors.faintText}
             keyboardType="decimal-pad"
             value={amount}
             onChangeText={setAmount}
@@ -185,7 +188,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
           )}
           <Text style={styles.fieldLabel}>Data (GG/MM/AAAA)</Text>
           <TextInput style={styles.input} value={date} onChangeText={setDate} keyboardType="numeric" />
-          <TextInput style={styles.input} placeholder="Nota (opzionale)" value={note} onChangeText={setNote} />
+          <TextInput style={styles.input} placeholder="Nota (opzionale)" placeholderTextColor={colors.faintText} value={note} onChangeText={setNote} />
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <View style={styles.actions}>
             <Pressable style={[styles.btn, styles.btnCancel]} onPress={onClose}>
@@ -197,6 +200,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
           </View>
         </ScrollView>
         </KeyboardAvoidingView>
+        <View pointerEvents="none" style={[styles.navBarStrip, { height: insets.bottom }]} />
       </View>
     </Modal>
   );
@@ -204,6 +208,8 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  kaView: { flex: 1, justifyContent: 'flex-end' },
+  navBarStrip: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#000000' },
   card: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, maxHeight: '90%' },
   title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   fieldLabel: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 4 },
