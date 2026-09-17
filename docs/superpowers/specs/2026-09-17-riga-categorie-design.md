@@ -35,7 +35,7 @@ L'ultima riga può risultare più corta delle altre (12+1 caselle su 4 per riga)
 Se la categoria selezionata non è tra le prime due visibili, questa compare **subito dopo "Tutte"**, così il filtro attivo è sempre visibile anche a griglia chiusa.
 
 - Nessuna selezione (o "Tutte"): riempimento standard con l'ordine delle `CATEGORIES` (Cibo, Trasporti, …).
-- Selezione attiva: le posizioni centrali sono `categoria selezionata` + prime categorie standard non duplicate, fino a riempire le 3 caselle tra "Tutte" e la freccia.
+- Selezione attiva: le posizioni centrali sono `categoria selezionata` + prima categoria standard non duplicata, fino a riempire le 2 caselle tra "Tutte" e la freccia.
 - In entrambi i casi l'ordine non deve mai duplicare una categoria già mostrata.
 
 ### Selezione
