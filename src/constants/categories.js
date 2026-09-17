@@ -14,15 +14,21 @@ export const CATEGORIES = [
 
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.key, c]));
 
-export function orderedCategoryKeys(selectedKey) {
+export function orderedCategoryKeys() {
   const standard = CATEGORIES.map((c) => c.key);
-  const firstTwo = standard.slice(0, 2);
-  let central;
-  if (!selectedKey || selectedKey === 'all' || firstTwo.includes(selectedKey)) {
-    central = firstTwo;
-  } else {
-    central = [selectedKey, ...standard.filter((k) => k !== selectedKey)].slice(0, 2);
-  }
-  const rest = standard.filter((k) => !central.includes(k));
-  return { central, rest };
+  return { central: standard.slice(0, 2), rest: standard.slice(2) };
+}
+
+export function toggleCategory(selectedKeys, key) {
+  return selectedKeys.includes(key)
+    ? selectedKeys.filter((k) => k !== key)
+    : [...selectedKeys, key];
+}
+
+export function hasSelectedCategories(selectedKeys) {
+  return selectedKeys.length > 0;
+}
+
+export function matchesCategoryFilter(selectedKeys, category) {
+  return selectedKeys.length === 0 || selectedKeys.includes(category);
 }
