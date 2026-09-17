@@ -5,6 +5,7 @@ import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { colors } from '../theme/colors';
 import { formatCurrency } from '../utils/format';
+import { nextAccountOrder } from '../utils/finance';
 
 const TYPES = ['carta', 'banca', 'contanti'];
 const TYPE_LABELS = { carta: 'Carta', banca: 'Banca', contanti: 'Contanti' };
@@ -28,7 +29,7 @@ function parseCurrencyInput(text) {
   return Number.isNaN(value) ? 0 : value;
 }
 
-export default function AccountFormModal({ visible, onClose, initial }) {
+export default function AccountFormModal({ visible, onClose, initial, accounts = [] }) {
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [initialBalance, setInitialBalance] = useState('');
@@ -69,7 +70,7 @@ export default function AccountFormModal({ visible, onClose, initial }) {
       if (isEdit) {
         await updateDoc(doc(db, 'accounts', initial.id), data);
       } else {
-        await addDoc(collection(db, 'accounts'), data);
+        await addDoc(collection(db, 'accounts'), { ...data, order: nextAccountOrder(accounts) });
       }
       onClose();
     } catch (err) {

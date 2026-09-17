@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/db';
+import { sortAccountsByOrder } from '../utils/finance';
 
 export function useAccounts() {
   const [accounts, setAccounts] = useState([]);
@@ -11,7 +12,7 @@ export function useAccounts() {
     const unsub = onSnapshot(
       collection(db, 'accounts'),
       (snap) => {
-        setAccounts(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        setAccounts(sortAccountsByOrder(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))));
         setLoading(false);
       },
       (err) => {
