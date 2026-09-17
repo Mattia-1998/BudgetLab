@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind } from '../src/utils/finance.js';
-import { CATEGORIES, CATEGORY_MAP } from '../src/constants/categories.js';
+import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys } from '../src/constants/categories.js';
 import { formatCurrency } from '../src/utils/format.js';
 
 const d = (y, m, day) => new Date(y, m - 1, day, 12, 0, 0).getTime();
@@ -59,5 +59,19 @@ assert.equal(CATEGORY_MAP.stipendio.icon, 'cash-outline');
 assert.equal(CATEGORY_MAP.stipendio.color, '#00838F');
 assert.equal(CATEGORY_MAP.cibo.label, 'Cibo');
 assert.equal(formatCurrency(12.5), '12,50\u00a0€');
+
+assert.deepEqual(orderedCategoryKeys('all'), {
+  central: ['cibo', 'trasporti'],
+  rest: ['casa', 'bollette', 'salute', 'svago', 'sport', 'auto', 'shopping', 'stipendio', 'altro'],
+});
+
+const o = orderedCategoryKeys('stipendio');
+assert.deepEqual(o.central, ['stipendio', 'cibo']);
+assert.deepEqual(o.rest, ['trasporti', 'casa', 'bollette', 'salute', 'svago', 'sport', 'auto', 'shopping', 'altro']);
+assert.equal(new Set([...o.central, ...o.rest]).size, 11); // nessun duplicato, tutte presenti
+
+assert.deepEqual(orderedCategoryKeys('cibo').central, ['cibo', 'trasporti']);
+assert.deepEqual(orderedCategoryKeys(undefined).central, ['cibo', 'trasporti']);
+assert.deepEqual(orderedCategoryKeys('trasporti').central, ['cibo', 'trasporti']);
 
 console.log('Tutti i controlli di finanza/format/categorie passano.');

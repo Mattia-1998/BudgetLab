@@ -13,3 +13,16 @@ export const CATEGORIES = [
 ];
 
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.key, c]));
+
+export function orderedCategoryKeys(selectedKey) {
+  const standard = CATEGORIES.map((c) => c.key);
+  const firstTwo = standard.slice(0, 2);
+  let central;
+  if (!selectedKey || selectedKey === 'all' || firstTwo.includes(selectedKey)) {
+    central = firstTwo;
+  } else {
+    central = [selectedKey, ...standard.filter((k) => k !== selectedKey)].slice(0, 2);
+  }
+  const rest = standard.filter((k) => !central.includes(k));
+  return { central, rest };
+}
