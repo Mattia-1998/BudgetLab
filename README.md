@@ -1,6 +1,6 @@
 # Budget Lab
 
-**Versione:** 1.3.0  
+**Versione:** 1.4.0  
 **Piattaforma:** React Native (Expo)  
 **Backend:** Firebase  
 
@@ -35,6 +35,7 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 - Riquadro "Totale saldi" con saldo totale di tutti i conti
 - Barra full-width "Aggiungi conto" con modale creazione/modifica
 - **12 palette colori** selezionabili per conto su due righe (viola, blu, verde, rosso, giallo, arancione e altri)
+- **Riordino con long-press e drag**: tieni premuto un conto per sollevarlo (vibrazione + card fantasma che segue il dito) e trascinalo per cambiarne l'ordine; l'ordine è salvato e vale in tutta l'app
 
 ### 📊 Categorie di spesa
 11 categorie predefinite: Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Stipendio, Shopping, Altro — ciascuna con icona e colore dedicati. Lo Stipendio è pensato per le entrate.
@@ -201,7 +202,8 @@ Cobol/
   color: "#4F46E5",           // colore card (HEX)
   initialBalance: 1200.50,    // saldo iniziale alla creazione
   createdAt: 1726464000000,   // timestamp ms
-  code: "1234 5678 9101 1121" // opzionale: IBAN o numero carta
+  code: "1234 5678 9101 1121", // opzionale: IBAN o numero carta
+  order: 0                    // posizione manuale (riordino con long-press e drag)
 }
 ```
 
@@ -246,6 +248,13 @@ Verifica la correttezza della logica pura:
 ---
 
 ## 📋 Changelog
+
+- **1.4.0** — Riordino dei conti con long-press e drag:
+  - Tieni premuto un conto nella tab Conti per sollevarlo (vibrazione + card fantasma che segue il dito) e trascinalo per riordinarlo
+  - Ordine persistito su Firestore (campo `order`) e applicato in tutta l'app: tab Conti, striscia Home e filtro "Conto" nei Movimenti
+  - I nuovi conti vengono aggiunti in fondo; i conti esistenti senza `order` restano in coda ordinati per data di creazione
+  - Al rilascio l'ordine viene salvato in un batch; in caso di errore avviso e ripristino dell'ordine precedente
+  - Logica pura `sortAccountsByOrder`, `nextAccountOrder` e `dragInsertIndex` coperta dai test (`scripts/finance.spec.mjs`)
 
 - **1.3.0** — Multi-selezione categorie e nuove icone:
   - Selezionabili più categorie insieme nella schermata Movimenti (filtro OR): i movimenti mostrati appartengono ad almeno una categoria selezionata
@@ -324,4 +333,4 @@ Per segnalazioni bug o richieste funzionalità:
 
 ---
 
-*Ultimo aggiornamento: Settembre 2026 - Versione 1.3.0*
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.4.0*
