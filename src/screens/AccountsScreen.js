@@ -5,7 +5,7 @@ import { deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
-import { accountBalance, totalBalance } from '../utils/finance';
+import { accountBalance, totalBalance, dragInsertIndex } from '../utils/finance';
 import { formatCurrency } from '../utils/format';
 import AccountFormModal from '../components/AccountFormModal';
 import OfflineBanner from '../components/OfflineBanner';
@@ -61,6 +61,7 @@ export default function AccountsScreen() {
     drag.granted = false;
     drag.prevList = [...accounts];
     drag.baseGhostTop = contentRowTop([...accounts], index);
+    ghostY.setValue(drag.baseGhostTop - (scrollOffset.current || 0));
     syncWorking([...accounts]);
     setDragId(acc.id);
     Vibration.vibrate(10);
@@ -104,14 +105,7 @@ export default function AccountsScreen() {
         const ghostTop = drag.baseGhostTop + dy;
         const ghostMid = ghostTop + rowHeightOf(dragged) / 2;
         const rows = list.filter((a) => a.id !== drag.id);
-        let top = 10;
-        let insertAt = 0;
-        for (const r of rows) {
-          const h = rowHeightOf(r);
-          if (ghostMid > top + h / 2) insertAt++;
-          else break;
-          top += h + 10;
-        }
+        const insertAt = dragInsertIndex(rows, rowHeights.current, ghostMid);
         if (insertAt !== drag.curIndex) {
           const next = [...list];
           const [item] = next.splice(drag.curIndex, 1);

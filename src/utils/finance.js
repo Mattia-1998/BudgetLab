@@ -57,3 +57,15 @@ export function sortAccountsByOrder(accounts) {
 export function nextAccountOrder(accounts) {
   return accounts.reduce((m, a) => (typeof a.order === 'number' ? Math.max(m, a.order) : m), -1) + 1;
 }
+
+export function dragInsertIndex(rows, heights, ghostMid, fallbackHeight = 70) {
+  let top = 10;
+  let insertAt = 0;
+  for (const r of rows) {
+    const h = heights[r.id] || fallbackHeight;
+    if (ghostMid > top + h / 2) insertAt++;
+    else break;
+    top += h + 10;
+  }
+  return insertAt;
+}

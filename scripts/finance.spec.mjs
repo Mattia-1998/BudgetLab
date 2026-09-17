@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder } from '../src/utils/finance.js';
+import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex } from '../src/utils/finance.js';
 import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategoryFilter } from '../src/constants/categories.js';
 import { formatCurrency } from '../src/utils/format.js';
 
@@ -114,5 +114,14 @@ assert.deepEqual(inputOrder, inputSnapshot);
 assert.equal(nextAccountOrder([]), 0);
 assert.equal(nextAccountOrder([{ id: 'a', order: 0 }, { id: 'b' }]), 1);
 assert.equal(nextAccountOrder([{ id: 'a', order: 4 }, { id: 'b', order: 0 }]), 5);
+
+assert.equal(dragInsertIndex([], {}, 100), 0);
+assert.equal(dragInsertIndex([{ id: 'a' }], { a: 100 }, 10), 0);
+assert.equal(dragInsertIndex([{ id: 'a' }, { id: 'b' }], { a: 100, b: 80 }, 500), 2);
+assert.equal(dragInsertIndex([{ id: 'a' }, { id: 'b' }, { id: 'c' }], { a: 100, b: 50, c: 80 }, 100), 1);
+assert.equal(dragInsertIndex([{ id: 'a' }], {}, 45), 0);
+assert.equal(dragInsertIndex([{ id: 'a' }], {}, 46), 1);
+assert.equal(dragInsertIndex([{ id: 'a' }, { id: 'b' }], { a: 100 }, 155), 1);
+assert.equal(dragInsertIndex([{ id: 'a' }, { id: 'b' }], { a: 100 }, 156), 2);
 
 console.log('Tutti i controlli di finanza/format/categorie passano.');
