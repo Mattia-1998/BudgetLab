@@ -31,6 +31,7 @@ export default function AccountsScreen() {
     grantY: 0,
     baseGhostTop: 0,
     didDrag: false,
+    granted: false,
     prevList: null,
   }).current;
 
@@ -57,6 +58,7 @@ export default function AccountsScreen() {
     drag.curIndex = index;
     drag.grantY = 0;
     drag.didDrag = false;
+    drag.granted = false;
     drag.prevList = [...accounts];
     drag.baseGhostTop = contentRowTop([...accounts], index);
     syncWorking([...accounts]);
@@ -91,7 +93,7 @@ export default function AccountsScreen() {
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponderCapture: () => drag.active,
-      onPanResponderGrant: (evt) => { drag.grantY = evt.nativeEvent.pageY; },
+      onPanResponderGrant: (evt) => { drag.grantY = evt.nativeEvent.pageY; drag.granted = true; },
       onPanResponderMove: (_, gs) => {
         if (!drag.active) return;
         const dy = gs.moveY - drag.grantY;
@@ -191,6 +193,7 @@ export default function AccountsScreen() {
                   style={styles.card}
                   onPress={() => { if (!drag.active) openEdit(item); }}
                   onLongPress={() => startDrag(item, index)}
+                  onPressOut={() => { if (drag.active && !drag.granted) finishDrag(); }}
                 >
                   {renderCardContent(item, true)}
                 </Pressable>
