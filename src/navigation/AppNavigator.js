@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from '../screens/HomeScreen';
@@ -21,15 +21,22 @@ const TAB_ICONS = {
 export default function AppNavigator() {
   const insets = useSafeAreaInsets();
   const { hidden, resetTimer } = useAutoHideSystemBar();
-  const padAnim = useRef(new Animated.Value(insets.bottom)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const bottomInsetRef = useRef(insets.bottom);
 
   useEffect(() => {
-    Animated.timing(padAnim, {
-      toValue: hidden ? 0 : insets.bottom,
+    if (insets.bottom > bottomInsetRef.current) {
+      bottomInsetRef.current = insets.bottom;
+    }
+  }, [insets.bottom]);
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: hidden ? bottomInsetRef.current : 0,
       duration: 300,
       useNativeDriver: false,
     }).start();
-  }, [hidden, insets.bottom]);
+  }, [hidden, slideAnim]);
 
   return (
     <View style={styles.root} onTouchStart={resetTimer}>
@@ -41,10 +48,16 @@ export default function AppNavigator() {
             ),
             tabBarActiveTintColor: colors.primary,
             headerTitleAlign: 'center',
-            tabBarStyle: {
-              paddingBottom: padAnim,
-            },
           })}
+          tabBar={(tabBarProps) => (
+            <Animated.View
+              style={{
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
+              <BottomTabBar {...tabBarProps} />
+            </Animated.View>
+          )}
         >
           <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
           <Tab.Screen name="Movimenti" component={TransactionsScreen} options={{ title: 'Movimenti' }} />

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
-import { NavigationBar } from 'expo-navigation-bar';
+import { NavigationBar, useVisibility } from 'expo-navigation-bar';
 
 const INACTIVITY_MS = 5000;
 
 export default function useAutoHideSystemBar() {
   const timerRef = useRef(null);
-  const visibility = NavigationBar.useVisibility();
+  const visibility = useVisibility();
   const hidden = Platform.OS === 'android' && visibility === 'hidden';
 
   const arm = useCallback(() => {
