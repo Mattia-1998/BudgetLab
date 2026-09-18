@@ -1,10 +1,10 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function CategoryTile({ icon, label, color, active, width, inactiveColor, onPress }) {
+export default function CategoryTile({ icon, label, color, active, width, inactiveColor, iconSize = 22, onPress }) {
   return (
     <Pressable style={[styles.tile, { width }, active && { backgroundColor: color, borderColor: color }]} onPress={onPress}>
-      <Ionicons name={icon} size={22} color={active ? '#fff' : (inactiveColor ?? color)} />
+      <Ionicons name={icon} size={iconSize} color={active ? '#fff' : (inactiveColor ?? color)} />
       <Text style={[styles.text, active && styles.textActive]}>{label}</Text>
     </Pressable>
   );

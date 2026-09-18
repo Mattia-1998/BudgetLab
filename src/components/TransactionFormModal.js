@@ -135,6 +135,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
                     color={c.color}
                     active={category === c.key}
                     width={tileWidth}
+                    iconSize={20}
                     onPress={() => setCategory(c.key)}
                   />
                 ))}
