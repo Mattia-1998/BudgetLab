@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from
 import { Ionicons } from '@expo/vector-icons';
 import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
-import { monthRange, totalBalance, sumByKind } from '../utils/finance';
+import { monthRange, isInRange, totalBalance, sumByKind } from '../utils/finance';
 import { formatMonthLabel, formatCurrency } from '../utils/format';
 import MonthCarousel from '../components/MonthCarousel';
 import AccountCards from '../components/AccountCards';
@@ -17,18 +17,21 @@ export default function HomeScreen() {
   const { accounts, loading: loadingAccts, error: errorAccts } = useAccounts();
   const { transactions, loading: loadingTxs, error: errorTxs } = useTransactions();
   const [month, setMonth] = useState(() => new Date());
+  const [allMonths, setAllMonths] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState(null);
 
   if (loadingAccts || loadingTxs) return <View style={styles.center}><ActivityIndicator size="large" /></View>;
   if (errorAccts || errorTxs) return <View style={styles.center}><Text style={styles.errorText}>Errore Firestore</Text></View>;
 
-  const range = monthRange(month);
+  const range = allMonths ? null : monthRange(month);
+  const startMs = range ? range.startMs : -Infinity;
+  const endMs = range ? range.endMs : Infinity;
   const total = totalBalance(accounts, transactions);
-  const income = sumByKind(transactions, 'income', range.startMs, range.endMs);
-  const expense = sumByKind(transactions, 'expense', range.startMs, range.endMs);
+  const income = sumByKind(transactions, 'income', startMs, endMs);
+  const expense = sumByKind(transactions, 'expense', startMs, endMs);
   const monthTx = transactions
-    .filter((t) => t.date >= range.startMs && t.date <= range.endMs)
+    .filter((t) => isInRange(t.date, startMs, endMs))
     .sort((a, b) => b.date - a.date);
   const recent = monthTx.slice(0, 10);
 
@@ -39,7 +42,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <OfflineBanner />
       <View style={styles.carouselRow}>
-        <MonthCarousel month={month} label={formatMonthLabel(month)} onPrev={prev} onNext={next} />
+        <MonthCarousel month={month} label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)} onPrev={prev} onNext={next} onAll={() => setAllMonths((v) => !v)} allActive={allMonths} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {accounts.length === 0 && !loadingAccts && !loadingTxs && !errorAccts && !errorTxs ? (
@@ -54,11 +57,11 @@ export default function HomeScreen() {
           </View>
         </View>
         <AccountCards accounts={accounts} transactions={transactions} />
-        <Text style={styles.sectionTitle}>Spese per categoria · {formatMonthLabel(month)}</Text>
-        <ExpensePie transactions={transactions} startMs={range.startMs} endMs={range.endMs} />
+        <Text style={styles.sectionTitle}>Spese per categoria · {allMonths ? 'Tutti i mesi' : formatMonthLabel(month)}</Text>
+        <ExpensePie transactions={transactions} startMs={startMs} endMs={endMs} />
         <Text style={styles.sectionTitle}>Ultimi movimenti</Text>
         {recent.length === 0 ? (
-          <Text style={styles.empty}>Nessun movimento in questo mese.</Text>
+          <Text style={styles.empty}>{allMonths ? 'Nessun movimento.' : 'Nessun movimento in questo mese.'}</Text>
         ) : (
           recent.map((t) => (
             <TransactionItem key={t.id} transaction={t} onPress={() => { setEditing(t); setModalVisible(true); }} accountById={Object.fromEntries(accounts.map((a) => [a.id, a]))} />
