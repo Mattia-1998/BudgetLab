@@ -3,6 +3,7 @@ import { View, Text, Pressable, PanResponder, Animated, StyleSheet } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { formatMonthLabel } from '../utils/format';
+import { usePagerSwipe } from '../navigation/PagerSwipeContext';
 
 const DOUBLE_TAP_MS = 300;
 const GAP = 24;
@@ -22,6 +23,7 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, onS
   const prevMonthRef = useRef(month);
   const allActiveRef = useRef(!!allActive);
   allActiveRef.current = !!allActive;
+  const pager = usePagerSwipe();
 
   useEffect(() => {
     if (prevMonthRef.current.getTime() === month.getTime()) return;
@@ -81,7 +83,12 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, onS
   const nextText = nextLabelProp ?? formatMonthLabel(addMonths(month, 1));
 
   return (
-    <View style={styles.wrap}>
+    <View
+      style={styles.wrap}
+      onTouchStart={() => { if (shiftableRef.current && !allActiveRef.current) pager?.lock(); }}
+      onTouchEnd={() => pager?.unlock()}
+      onTouchCancel={() => pager?.unlock()}
+    >
       <Pressable style={styles.arrowBtn} disabled={!shiftable} onPress={shiftable ? () => slide(1) : undefined} hitSlop={6} accessibilityLabel="Mese precedente">
         <Ionicons name="chevron-back" size={16} color={colors.primary} />
       </Pressable>
