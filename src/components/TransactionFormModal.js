@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { SPENDING_CATEGORIES } from '../constants/categories';
 import Segmented from './Segmented';
+import CategoryTile from './CategoryTile';
 import { colors } from '../theme/colors';
 
 const parseDate = (value) => {
@@ -22,6 +22,8 @@ const toDmy = (ts) => {
 
 export default function TransactionFormModal({ visible, onClose, accounts, initial }) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const tileWidth = Math.floor((width - 64) / 4);
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState('expense');
   const [transferTo, setTransferTo] = useState(null);
@@ -125,15 +127,17 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
             <>
               <Text style={styles.fieldLabel}>Categoria</Text>
               <View style={styles.catGrid}>
-                {SPENDING_CATEGORIES.map((c) => {
-                  const active = category === c.key;
-                  return (
-                    <Pressable key={c.key} style={[styles.cat, active && { borderColor: c.color, borderWidth: 2 }]} onPress={() => setCategory(c.key)}>
-                      <Ionicons name={c.icon} size={20} color={c.color} />
-                      <Text style={styles.catText}>{c.label}</Text>
-                    </Pressable>
-                  );
-                })}
+                {SPENDING_CATEGORIES.map((c) => (
+                  <CategoryTile
+                    key={c.key}
+                    icon={c.icon}
+                    label={c.label}
+                    color={c.color}
+                    active={category === c.key}
+                    width={tileWidth}
+                    onPress={() => setCategory(c.key)}
+                  />
+                ))}
               </View>
             </>
           ) : null}
@@ -206,9 +210,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   fieldLabel: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 4 },
   input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, marginBottom: 10 },
-  catGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
-  cat: { alignItems: 'center', justifyContent: 'center', width: 80, padding: 8, borderRadius: 10, borderWidth: 1, borderColor: 'transparent', marginBottom: 8 },
-  catText: { fontSize: 11, color: '#444' },
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10, gap: 8 },
   acctRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
   chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: '#EEE', marginRight: 8, marginBottom: 8 },
   chipActive: { backgroundColor: colors.primary },
