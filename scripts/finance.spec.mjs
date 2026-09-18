@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex } from '../src/utils/finance.js';
+import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt } from '../src/utils/finance.js';
 import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategoryFilter } from '../src/constants/categories.js';
 import { formatCurrency } from '../src/utils/format.js';
 
@@ -123,5 +123,31 @@ assert.equal(dragInsertIndex([{ id: 'a' }], {}, 45), 0);
 assert.equal(dragInsertIndex([{ id: 'a' }], {}, 46), 1);
 assert.equal(dragInsertIndex([{ id: 'a' }, { id: 'b' }], { a: 100 }, 155), 1);
 assert.equal(dragInsertIndex([{ id: 'a' }, { id: 'b' }], { a: 100 }, 156), 2);
+
+const H = { a: 100, b: 80, c: 90, d: 110, e: 100 };
+const list5 = ['a', 'b', 'c', 'd', 'e'].map((id) => ({ id }));
+
+assert.deepEqual(dragRowOffsets(list5, 'b', H, 3), { a: 0, b: 0, c: -90, d: -90, e: 0 }); // b (start 1) giù a 3, shift 80+10=90
+assert.deepEqual(dragRowOffsets(list5, 'c', H, 0), { a: 100, b: 100, c: 0, d: 0, e: 0 }); // c (start 2) su a 0, shift 90+10=100
+assert.deepEqual(dragRowOffsets(list5, 'b', H, 1), { a: 0, b: 0, c: 0, d: 0, e: 0 });      // indice invariato
+assert.deepEqual(dragRowOffsets(list5, 'a', H, 2), { a: 0, b: -110, c: -110, d: 0, e: 0 }); // primo a (start 0) giù, shift 100+10=110
+assert.deepEqual(dragRowOffsets(list5, 'e', H, 1), { a: 0, b: 110, c: 110, d: 110, e: 0 }); // ultimo e (start 4) su, shift 100+10=110
+assert.deepEqual(dragRowOffsets(list5, 'zz', H, 1), { a: 0, b: 0, c: 0, d: 0, e: 0 });      // id assente
+assert.deepEqual(dragRowOffsets(list5, 'b', {}, 3), { a: 0, b: 0, c: -80, d: -80, e: 0 }); // fallback 70 → shift 80
+
+const list5Before = list5.map((r) => ({ id: r.id }));
+dragRowOffsets(list5, 'b', H, 3);
+assert.deepEqual(list5, list5Before);
+
+const ABCD = ['a', 'b', 'c', 'd'].map((id) => ({ id }));
+assert.deepEqual(reorderAt(ABCD, 1, 3).map((a) => a.id), ['a', 'c', 'd', 'b']);
+assert.deepEqual(reorderAt(ABCD, 2, 0).map((a) => a.id), ['c', 'a', 'b', 'd']);
+assert.deepEqual(reorderAt(ABCD, 1, 1).map((a) => a.id), ['a', 'b', 'c', 'd']);
+assert.deepEqual(reorderAt(ABCD, 0, 3).map((a) => a.id), ['b', 'c', 'd', 'a']);
+assert.deepEqual(reorderAt(ABCD, 3, 0).map((a) => a.id), ['d', 'a', 'b', 'c']);
+
+const ABCDsnap = ABCD.map((r) => ({ id: r.id }));
+reorderAt(ABCD, 1, 3);
+assert.deepEqual(ABCD, ABCDsnap);
 
 console.log('Tutti i controlli di finanza/format/categorie passano.');

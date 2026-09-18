@@ -69,3 +69,24 @@ export function dragInsertIndex(rows, heights, ghostMid, fallbackHeight = 70) {
   }
   return insertAt;
 }
+
+export function dragRowOffsets(list, draggedId, heights, targetIndex, fallbackHeight = 70) {
+  const startIndex = list.findIndex((a) => a.id === draggedId);
+  const offsets = {};
+  list.forEach((r) => { offsets[r.id] = 0; });
+  if (startIndex === -1) return offsets;
+  const shift = (heights[draggedId] || fallbackHeight) + 10;
+  list.forEach((r, i) => {
+    if (r.id === draggedId) return;
+    if (targetIndex < startIndex && i >= targetIndex && i < startIndex) offsets[r.id] = shift;
+    else if (targetIndex > startIndex && i > startIndex && i <= targetIndex) offsets[r.id] = -shift;
+  });
+  return offsets;
+}
+
+export function reorderAt(list, from, to) {
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
