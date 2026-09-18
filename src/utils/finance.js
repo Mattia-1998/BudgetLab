@@ -90,3 +90,8 @@ export function reorderAt(list, from, to) {
   next.splice(to, 0, item);
   return next;
 }
+
+export function matchesAccountFilter(transaction, accountId) {
+  if (accountId === 'all') return true;
+  return transaction.accountId === accountId || transaction.transferTo === accountId;
+}

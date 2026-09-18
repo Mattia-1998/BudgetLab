@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt } from '../src/utils/finance.js';
+import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt, matchesAccountFilter } from '../src/utils/finance.js';
 import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategoryFilter } from '../src/constants/categories.js';
 import { formatCurrency } from '../src/utils/format.js';
 
@@ -149,5 +149,19 @@ assert.deepEqual(reorderAt(ABCD, 3, 0).map((a) => a.id), ['d', 'a', 'b', 'c']);
 const ABCDsnap = ABCD.map((r) => ({ id: r.id }));
 reorderAt(ABCD, 1, 3);
 assert.deepEqual(ABCD, ABCDsnap);
+
+const freeTransfer = [{ id: 'f1', accountId: 'c2', transferTo: 'c1', amount: 15, kind: 'transfer', date: d(2026, 9, 8) }];
+assert.equal(accountBalance(freeTransfer, 'c1'), 15);
+assert.equal(accountBalance(freeTransfer, 'c2'), -15);
+assert.equal(totalBalance(accounts, freeTransfer), 0);
+
+const transferTx = { id: 't1', kind: 'transfer', accountId: 'c1', transferTo: 'c2', amount: 50 };
+assert.equal(matchesAccountFilter(transferTx, 'all'), true);
+assert.equal(matchesAccountFilter(transferTx, 'c1'), true);  // match sorgente
+assert.equal(matchesAccountFilter(transferTx, 'c2'), true);  // match destinazione
+assert.equal(matchesAccountFilter(transferTx, 'c3'), false); // conto non coinvolto
+assert.equal(matchesAccountFilter(txs[0], 'all'), true);
+assert.equal(matchesAccountFilter(txs[0], 'c1'), true);
+assert.equal(matchesAccountFilter(txs[0], 'c2'), false);
 
 console.log('Tutti i controlli di finanza/format/categorie passano.');
