@@ -6,11 +6,12 @@ import { db } from '../../firebase/db';
 import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
 import { CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategorySelection } from '../constants/categories';
-import { monthRange, isInRange, matchesAccountFilter } from '../utils/finance';
-import { formatMonthLabel } from '../utils/format';
+import { isInRange, matchesAccountFilter } from '../utils/finance';
 import TransactionItem from '../components/TransactionItem';
 import TransactionFormModal from '../components/TransactionFormModal';
 import MonthCarousel from '../components/MonthCarousel';
+import PeriodSheet from '../components/PeriodSheet';
+import usePeriod from '../hooks/usePeriod';
 import OfflineBanner from '../components/OfflineBanner';
 import { colors } from '../theme/colors';
 
@@ -22,24 +23,23 @@ export default function TransactionsScreen() {
   const [accountId, setAccountId] = useState('all');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-  const [month, setMonth] = useState(() => new Date());
-  const [allMonths, setAllMonths] = useState(false);
+  const [periodVisible, setPeriodVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState(null);
+  const { period, startMs, endMs, label, prevLabel, nextLabel, allActive, shiftable, prev, next, toggleAll, applyPeriod } = usePeriod();
   const { width } = useWindowDimensions();
   const tileWidth = Math.floor((width - 56) / 4); // 32 di padding laterali di filterBlock + 24 di gap (3×8)
   const accountMap = Object.fromEntries(accounts.map((a) => [a.id, a]));
   const { central, rest } = orderedCategoryKeys();
 
   const filtered = useMemo(() => {
-    const range = allMonths ? null : monthRange(month);
     const q = query.trim().toLowerCase();
     return transactions
       .filter((t) => {
         if (kind !== 'all' && t.kind !== kind) return false;
         if (!matchesAccountFilter(t, accountId)) return false;
         if (!matchesCategorySelection(selectedCategories, t)) return false;
-        if (range && !isInRange(t.date, range.startMs, range.endMs)) return false;
+        if (!isInRange(t.date, startMs, endMs)) return false;
         if (q) {
           const catLabel = (CATEGORY_MAP[t.category] || CATEGORY_MAP.altro).label.toLowerCase();
           const note = (t.note || '').toLowerCase();
@@ -48,7 +48,7 @@ export default function TransactionsScreen() {
         return true;
       })
       .sort((a, b) => b.date - a.date);
-  }, [transactions, query, kind, accountId, selectedCategories, month, allMonths]);
+  }, [transactions, query, kind, accountId, selectedCategories, startMs, endMs]);
 
   if (loadingAccts || loadingTxs) return <View style={styles.center}><ActivityIndicator size="large" /></View>;
   if (errorAccts || errorTxs) return <View style={styles.center}><Text style={styles.errorText}>Errore Firestore</Text></View>;
@@ -58,9 +58,6 @@ export default function TransactionsScreen() {
       { text: 'Annulla', style: 'cancel' },
       { text: 'Elimina', style: 'destructive', onPress: () => deleteDoc(doc(db, 'transactions', t.id)).catch((e) => Alert.alert('Errore', 'Impossibile eliminare il movimento: ' + e.message)) },
     ]);
-
-  const prev = () => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
-  const next = () => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
 
   const toggleCategories = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -100,7 +97,7 @@ export default function TransactionsScreen() {
               ))}
             </View>
             <View style={styles.monthWrap}>
-              <MonthCarousel month={month} label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)} onPrev={prev} onNext={next} onAll={() => setAllMonths((v) => !v)} allActive={allMonths} />
+              <MonthCarousel month={new Date(period.anchor)} label={label} prevLabel={prevLabel} nextLabel={nextLabel} onPrev={prev} onNext={next} onAll={toggleAll} onSelect={() => setPeriodVisible(true)} allActive={allActive} shiftable={shiftable} />
             </View>
             <View style={styles.filterBlock}>
               <View style={styles.section}>
@@ -169,6 +166,7 @@ export default function TransactionsScreen() {
       <Pressable style={styles.fab} onPress={() => { setEditing(null); setModalVisible(true); }}>
         <Ionicons name="add" size={30} color="#fff" />
       </Pressable>
+      <PeriodSheet visible={periodVisible} period={period} onSelect={applyPeriod} onClose={() => setPeriodVisible(false)} />
       <TransactionFormModal visible={modalVisible} onClose={() => setModalVisible(false)} accounts={accounts} initial={editing} />
     </View>
   );
