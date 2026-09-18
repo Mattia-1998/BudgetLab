@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   row: { flex: 1, flexDirection: 'row' },
-  item: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'column', padding: 5 },
+  item: { flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'column', padding: 5 },
   label: { fontSize: 10 },
   navBarStrip: { backgroundColor: '#000000' },
 });
