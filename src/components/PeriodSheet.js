@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { periodRange, startOfMonth, shiftAnchor } from '../utils/finance';
 import { colors } from '../theme/colors';
@@ -19,6 +20,7 @@ const monthTitle = (ms) => {
 };
 
 export default function PeriodSheet({ visible, period, onSelect, onClose }) {
+  const insets = useSafeAreaInsets();
   const [showCustom, setShowCustom] = useState(period.mode === 'custom');
   const [start, setStart] = useState(period.customStart);
   const [end, setEnd] = useState(period.customEnd);
@@ -45,16 +47,17 @@ export default function PeriodSheet({ visible, period, onSelect, onClose }) {
     }
   };
 
-  const pickPreset = (mode) => { onSelect({ mode }); onClose(); };
-  const applyCustom = () => { onSelect({ mode: 'custom', customStart: start, customEnd: end }); onClose(); };
+  const pickPreset = (mode) => { setShowCustom(false); onSelect({ mode }); };
+  const applyCustom = () => { onSelect({ mode: 'custom', customStart: start, customEnd: end }); };
+  const customActive = showCustom || period.mode === 'custom';
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.card} onPress={() => {}}>
+        <Pressable style={[styles.card, { marginBottom: insets.bottom }]} onPress={() => {}}>
           <Text style={styles.title}>Periodo</Text>
           {PRESETS.map((p) => {
-            const active = period.mode === p.mode;
+            const active = !customActive && period.mode === p.mode;
             return (
               <Pressable key={p.mode} style={[styles.row, active && styles.rowActive]} onPress={() => pickPreset(p.mode)}>
                 <Text style={[styles.rowText, active && styles.rowTextActive]}>{p.label}</Text>
@@ -62,8 +65,8 @@ export default function PeriodSheet({ visible, period, onSelect, onClose }) {
               </Pressable>
             );
           })}
-          <Pressable style={[styles.row, showCustom && styles.rowActive]} onPress={() => setShowCustom((v) => !v)}>
-            <Text style={[styles.rowText, showCustom && styles.rowTextActive]}>Personalizzato…</Text>
+          <Pressable style={[styles.row, customActive && styles.rowActive]} onPress={() => setShowCustom((v) => !v)}>
+            <Text style={[styles.rowText, customActive && styles.rowTextActive]}>Personalizzato…</Text>
             <Ionicons name={showCustom ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
           </Pressable>
           {showCustom ? (
@@ -75,7 +78,11 @@ export default function PeriodSheet({ visible, period, onSelect, onClose }) {
               </Pressable>
             </View>
           ) : null}
+          <Pressable style={styles.doneBtn} onPress={onClose}>
+            <Text style={styles.doneText}>Fatto</Text>
+          </Pressable>
         </Pressable>
+        <View pointerEvents="none" style={[styles.navBarStrip, { height: insets.bottom }]} />
       </Pressable>
     </Modal>
   );
@@ -100,6 +107,7 @@ function Stepper({ label, value, onShift }) {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  navBarStrip: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#000000' },
   card: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20 },
   title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10 },
@@ -114,4 +122,6 @@ const styles = StyleSheet.create({
   stepperValue: { fontSize: 15, fontWeight: '600', color: colors.text, textTransform: 'capitalize' },
   applyBtn: { backgroundColor: colors.primary, borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 4 },
   applyText: { color: '#fff', fontWeight: '700' },
+  doneBtn: { backgroundColor: colors.primary, borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 12 },
+  doneText: { color: '#fff', fontWeight: '700' },
 });
