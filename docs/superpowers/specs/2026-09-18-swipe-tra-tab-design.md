@@ -52,10 +52,10 @@ Configurazione unica delle tab, riusata da header, barra e pager:
 ### `src/navigation/MainTabs.js` (nuovo)
 
 - Stato `index` (default `0`) e `loaded` (default `[0]`).
-- `PagerView` con `style={{ flex: 1 }}`, `initialPage={0}`, tre figli `View` con `width/height: '100%'` e `collapsable={false}` (i figli di `PagerView` non supportano `flex: 1`).
+- `PagerView` con `style={{ flex: 1 }}`, `initialPage={0}`, `offscreenPageLimit={2}` (Android, mantiene montate le tre pagine native), tre figli `View` con `width/height: '100%'` e `collapsable={false}` (i figli di `PagerView` non supportano `flex: 1`).
 - Ogni pagina rende il componente della schermata solo se `loaded` include l'indice, altrimenti un `View` vuoto con sfondo `colors.background`.
 - `onPageSelected={e => { ensureLoaded(e.nativeEvent.position); setIndex(e.nativeEvent.position); }}`.
-- `onPageScroll={e => { const { position, offset } = e.nativeEvent; if (offset > 0) ensureLoaded(position + 1); else if (offset < 0) ensureLoaded(position - 1); }}` (carica l'adiacente appena visibile).
+- `onPageScroll={e => { const { position, offset } = e.nativeEvent; ensureLoaded(position); if (offset > 0) ensureLoaded(position + 1); }}` (carica la pagina in ingresso e l'adiacente appena compaiono). Con la semantica di `pager-view`, `position` è la prima pagina visibile e `offset` è in `[0, 1]`: in avanti resta `position` e cresce `offset`, all'indietro `position` è già la pagina di destinazione. Caricare sempre `position` copre lo swipe indietro, `position + 1` copre lo swipe in avanti.
 - `selectTab(i)`: se `i === index` non fa nulla; carica `i`, aggiorna `index` e chiama `pagerRef.current?.setPage(i)`.
 - Espone via `PagerSwipeContext` le funzioni imperative `lock()` → `pagerRef.current?.setScrollEnabled(false)` e `unlock()` → `pagerRef.current?.setScrollEnabled(true)`.
 - Layout: `<AppHeader title={tabs[index].title} />` + `PagerView` + `<MainTabBar tabs={tabs} index={index} onSelect={selectTab} />`, dentro `<View style={{ flex: 1, backgroundColor: colors.background }}>`.
