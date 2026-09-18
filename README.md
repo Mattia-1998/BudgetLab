@@ -1,6 +1,6 @@
 # Budget Lab
 
-**Versione:** 1.7.0  
+**Versione:** 1.8.0  
 **Piattaforma:** React Native (Expo)  
 **Backend:** Firebase  
 
@@ -9,6 +9,11 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 ---
 
 ## 🚀 Funzionalità Principali
+
+### 🔄 Navigazione
+- Tre tab (Home, Movimenti, Conti) con intestazione del titolo e barra nera in basso
+- **Swipe orizzontale** tra le tab, con **caricamento lazy**: ogni schermata viene montata al primo accesso e poi mantenuta in memoria
+- Sullo strip del mese il gesto ha **priorità sul carosello**: scorre i mesi senza cambiare tab
 
 ### 🏠 Home
 - Saldo totale calcolato da tutti i conti
@@ -55,6 +60,7 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 | **React Native** | 0.86.3 | Framework mobile |
 | **Expo** | 57.0.23 | Toolchain & runtime |
 | **React Navigation** | 7.x (bottom-tabs 7.19.1) | Navigazione a tab |
+| **react-native-pager-view** | 8.0.2 | Swipe orizzontale tra le tab |
 | **Firebase** | 12.19.0 | Database (Firestore) in tempo reale |
 | **react-native-gifted-charts** | 1.4.78 | Grafico a torta spese (Home) |
 | **expo-network** | 57.0.2 | Rilevamento stato connessione |
@@ -143,7 +149,12 @@ Cobol/
 │
 ├── src/
 │   ├── navigation/
-│   │   └── AppNavigator.js         # Navigatore principale a tab
+│   │   ├── AppNavigator.js         # NavigationContainer + MainTabs
+│   │   ├── MainTabs.js             # PagerView, header, tab bar e caricamento lazy
+│   │   ├── MainTabBar.js           # Barra tab personalizzata in basso
+│   │   ├── AppHeader.js            # Intestazione con titolo della tab attiva
+│   │   ├── tabs.js                 # Definizione delle tre tab
+│   │   └── PagerSwipeContext.js    # Lock/unlock dello swipe del pager
 │   │
 │   ├── screens/
 │   │   ├── HomeScreen.js           # Home: saldo, grafico torta, ultimi movimenti
@@ -250,6 +261,13 @@ Verifica la correttezza della logica pura:
 
 ## 📋 Changelog
 
+- **1.8.0** — Swipe tra le tab:
+  - **Swipe orizzontale** tra Home, Movimenti e Conti tramite `react-native-pager-view`, con intestazione e barra tab che seguono la pagina attiva
+  - **Caricamento lazy**: ogni schermata viene montata solo al primo accesso e poi mantenuta in memoria
+  - Sullo strip del mese il gesto ha **priorità sul carosello**: scorre i mesi senza cambiare tab (tap sulle frecce e sul chip invariati)
+  - Nuova navigazione interna (`MainTabs`, `MainTabBar`, `AppHeader`, `tabs`, `PagerSwipeContext`) con barra tab personalizzata
+  - Nuova dipendenza `react-native-pager-view` (8.0.2)
+
 - **1.7.0** — Selettore di periodo in Home e Movimenti:
   - Nuovo selettore con **Mese, Bimestre, Trimestre, Semestre, Anno, Tutti** e **intervallo personalizzato**, indipendente tra Home e Movimenti
   - **Tap singolo** sul chip del periodo apre la sheet "Periodo"; **doppio tap** resta la scorciatoia "Tutti i mesi" e, ripetuto, ripristina il periodo precedente
@@ -355,4 +373,4 @@ Per segnalazioni bug o richieste funzionalità:
 
 ---
 
-*Ultimo aggiornamento: Settembre 2026 - Versione 1.7.0*
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.8.0*
