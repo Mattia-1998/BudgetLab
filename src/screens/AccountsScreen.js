@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react';
-import { View, Text, FlatList, Pressable, Alert, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, PanResponder, Vibration } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { View, Text, FlatList, Pressable, Alert, StyleSheet, ActivityIndicator, TouchableOpacity, Animated, Easing, PanResponder, Vibration } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
-import { accountBalance, totalBalance, dragInsertIndex } from '../utils/finance';
+import { accountBalance, totalBalance, dragInsertIndex, dragRowOffsets, reorderAt } from '../utils/finance';
 import { formatCurrency } from '../utils/format';
 import AccountFormModal from '../components/AccountFormModal';
 import OfflineBanner from '../components/OfflineBanner';
@@ -33,16 +33,45 @@ export default function AccountsScreen() {
     didDrag: false,
     granted: false,
     prevList: null,
+    lastOffsets: null,
   }).current;
 
   const [dragId, setDragId] = useState(null);
   const [working, setWorking] = useState(accounts);
   const ghostY = useRef(new Animated.Value(0)).current;
   const ghostScale = useRef(new Animated.Value(1)).current;
+  const rowOffsets = useRef({});
 
   const syncWorking = (next) => { workingRef.current = next; setWorking(next); };
 
+  useEffect(() => {
+    if (!drag.active) syncWorking(accounts);
+  }, [accounts]);
+
   const rowHeightOf = (a) => rowHeights.current[a.id] || 70;
+
+  const ensureRowOffset = (id) => {
+    if (!rowOffsets.current[id]) rowOffsets.current[id] = new Animated.Value(0);
+    return rowOffsets.current[id];
+  };
+
+  const resetRowOffsets = () => {
+    Object.values(rowOffsets.current).forEach((v) => v.setValue(0));
+  };
+
+  const applyOffsets = (targetIndex) => {
+    const list = workingRef.current;
+    const targets = dragRowOffsets(list, drag.id, rowHeights.current, targetIndex);
+    list.forEach((r) => ensureRowOffset(r.id));
+    list.forEach((r) => {
+      if (r.id === drag.id) return;
+      const val = rowOffsets.current[r.id];
+      if ((drag.lastOffsets && drag.lastOffsets[r.id]) !== targets[r.id]) {
+        Animated.timing(val, { toValue: targets[r.id], duration: 160, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
+      }
+    });
+    drag.lastOffsets = targets;
+  };
 
   // top in coordinate "contenuto" della riga index (paddingTop 10 + righe precedenti + separatori da 10)
   const contentRowTop = (list, index) => {
@@ -60,6 +89,8 @@ export default function AccountsScreen() {
     drag.didDrag = false;
     drag.granted = false;
     drag.prevList = [...accounts];
+    drag.lastOffsets = null;
+    resetRowOffsets();
     drag.baseGhostTop = contentRowTop([...accounts], index) + (evt.nativeEvent.locationY - rowHeightOf(acc) / 2);
     ghostY.setValue(drag.baseGhostTop - (scrollOffset.current || 0));
     syncWorking([...accounts]);
@@ -74,19 +105,32 @@ export default function AccountsScreen() {
     const prevList = drag.prevList;
     drag.active = false;
     drag.id = null;
-    setDragId(null);
-    Animated.spring(ghostScale, { toValue: 1, useNativeDriver: true }).start();
     if (!drag.didDrag) {
+      setDragId(null);
+      Animated.spring(ghostScale, { toValue: 1, useNativeDriver: true }).start();
+      resetRowOffsets();
+      drag.lastOffsets = null;
       syncWorking(prevList || list);
       return;
     }
-    const batch = writeBatch(db);
-    list.forEach((a, i) => {
-      if ((a.order ?? null) !== i) batch.update(doc(db, 'accounts', a.id), { order: i });
-    });
-    batch.commit().catch((err) => {
-      Alert.alert('Errore', "Impossibile salvare l'ordine: " + err.message);
-      syncWorking(prevList || list);
+    const final = reorderAt(list, drag.startIndex, drag.curIndex);
+    const targetY = contentRowTop(final, drag.curIndex) - (scrollOffset.current || 0);
+    Animated.parallel([
+      Animated.timing(ghostY, { toValue: targetY, duration: 180, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+      Animated.timing(ghostScale, { toValue: 1, duration: 180, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+    ]).start(() => {
+      setDragId(null);
+      syncWorking(final);
+      resetRowOffsets();
+      drag.lastOffsets = null;
+      const batch = writeBatch(db);
+      final.forEach((a, i) => {
+        if ((a.order ?? null) !== i) batch.update(doc(db, 'accounts', a.id), { order: i });
+      });
+      batch.commit().catch((err) => {
+        Alert.alert('Errore', "Impossibile salvare l'ordine: " + err.message);
+        syncWorking(prevList || final);
+      });
     });
   };
 
@@ -107,11 +151,8 @@ export default function AccountsScreen() {
         const rows = list.filter((a) => a.id !== drag.id);
         const insertAt = dragInsertIndex(rows, rowHeights.current, ghostMid);
         if (insertAt !== drag.curIndex) {
-          const next = [...list];
-          const [item] = next.splice(drag.curIndex, 1);
-          next.splice(insertAt, 0, item);
           drag.curIndex = insertAt;
-          syncWorking(next);
+          applyOffsets(insertAt);
         }
         ghostY.setValue(Math.max(0, ghostTop) - (scrollOffset.current || 0));
       },
@@ -168,37 +209,38 @@ export default function AccountsScreen() {
       <View style={styles.listWrap}>
         <FlatList
           ref={listRef}
-          data={dragId ? working : accounts}
+          data={working}
           keyExtractor={(a) => a.id}
           renderItem={({ item, index }) => {
-            if (dragId && item.id === dragId) {
-              return (
+            const offset = ensureRowOffset(item.id);
+            const isDragged = dragId === item.id;
+            return (
+              <Animated.View
+                {...panResponder.panHandlers}
+                style={[
+                  { transform: [{ translateY: offset }], opacity: isDragged ? 0 : 1 },
+                ]}
+              >
                 <View
                   onLayout={(e) => { rowHeights.current[item.id] = e.nativeEvent.layout.height; }}
-                />
-              );
-            }
-            return (
-              <View
-                {...panResponder.panHandlers}
-                onLayout={(e) => { rowHeights.current[item.id] = e.nativeEvent.layout.height; }}
-              >
-                <Pressable
-                  style={styles.card}
-                  onPress={() => { if (!drag.active) openEdit(item); }}
-                  onLongPress={(e) => startDrag(item, index, e)}
-                  onPressOut={() => {
-                    setTimeout(() => {
-                      if (drag.active && !drag.granted) finishDrag();
-                    }, 0);
-                  }}
                 >
-                  {renderCardContent(item, true)}
-                </Pressable>
-              </View>
+                  <Pressable
+                    style={styles.card}
+                    onPress={() => { if (!drag.active) openEdit(item); }}
+                    onLongPress={(e) => startDrag(item, index, e)}
+                    onPressOut={() => {
+                      setTimeout(() => {
+                        if (drag.active && !drag.granted) finishDrag();
+                      }, 0);
+                    }}
+                  >
+                    {renderCardContent(item, true)}
+                  </Pressable>
+                </View>
+                <View style={styles.rowSpacer} />
+              </Animated.View>
             );
           }}
-          ItemSeparatorComponent={() => <View style={styles.rowSeparator} />}
           contentContainerStyle={styles.listContent}
           scrollEnabled={dragId === null}
           removeClippedSubviews={false}
@@ -238,7 +280,7 @@ const styles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB' },
   listWrap: { flex: 1, backgroundColor: colors.background },
   listContent: { paddingTop: 10, paddingBottom: 20 },
-  rowSeparator: { height: 10 },
+  rowSpacer: { height: 10 },
   ghost: { position: 'absolute', left: 0, right: 0, top: 0, zIndex: 10, elevation: 8 },
   dot: { width: 12, height: 12, borderRadius: 6 },
   cardBody: { flex: 1, marginLeft: 10 },
