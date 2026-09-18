@@ -1,6 +1,6 @@
 # Budget Lab
 
-**Versione:** 1.4.0  
+**Versione:** 1.5.0  
 **Piattaforma:** React Native (Expo)  
 **Backend:** Firebase  
 
@@ -35,7 +35,7 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 - Riquadro "Totale saldi" con saldo totale di tutti i conti
 - Barra full-width "Aggiungi conto" con modale creazione/modifica
 - **12 palette colori** selezionabili per conto su due righe (viola, blu, verde, rosso, giallo, arancione e altri)
-- **Riordino con long-press e drag**: tieni premuto un conto per sollevarlo (vibrazione + card fantasma che segue il dito) e trascinalo per cambiarne l'ordine; l'ordine è salvato e vale in tutta l'app
+- **Riordino con long-press e drag animato**: tieni premuto un conto per sollevarlo (vibrazione + card fantasma ancorata al dito) e trascinalo per cambiarne l'ordine; durante il trascinamento le altre card si spostano con un'animazione per fare spazio e al rilascio la card atterra nella nuova posizione; l'ordine è salvato e vale in tutta l'app
 
 ### 📊 Categorie di spesa
 11 categorie predefinite: Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Stipendio, Shopping, Altro — ciascuna con icona e colore dedicati. Lo Stipendio è pensato per le entrate.
@@ -249,6 +249,12 @@ Verifica la correttezza della logica pura:
 
 ## 📋 Changelog
 
+- **1.5.0** — Animazioni nel riordino dei conti:
+  - La card fantasma è ancorata esattamente al punto di pressione e segue subito il dito, senza scatto iniziale
+  - Durante il trascinamento le altre card scorrono con un'animazione (160 ms) per fare spazio alla posizione di destinazione
+  - Al rilascio la card atterra animata nello slot finale (180 ms) prima del salvataggio dell'ordine su Firestore
+  - Nuove funzioni pure `dragRowOffsets` e `reorderAt` coperte dai test (`scripts/finance.spec.mjs`)
+
 - **1.4.0** — Riordino dei conti con long-press e drag:
   - Tieni premuto un conto nella tab Conti per sollevarlo (vibrazione + card fantasma che segue il dito) e trascinalo per riordinarlo
   - Ordine persistito su Firestore (campo `order`) e applicato in tutta l'app: tab Conti, striscia Home e filtro "Conto" nei Movimenti
@@ -333,4 +339,4 @@ Per segnalazioni bug o richieste funzionalità:
 
 ---
 
-*Ultimo aggiornamento: Settembre 2026 - Versione 1.4.0*
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.5.0*
