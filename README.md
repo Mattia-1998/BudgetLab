@@ -1,6 +1,6 @@
 # Budget Lab
 
-**Versione:** 1.6.0  
+**Versione:** 1.7.0  
 **Piattaforma:** React Native (Expo)  
 **Backend:** Firebase  
 
@@ -250,6 +250,14 @@ Verifica la correttezza della logica pura:
 
 ## 📋 Changelog
 
+- **1.7.0** — Selettore di periodo in Home e Movimenti:
+  - Nuovo selettore con **Mese, Bimestre, Trimestre, Semestre, Anno, Tutti** e **intervallo personalizzato**, indipendente tra Home e Movimenti
+  - **Tap singolo** sul chip del periodo apre la sheet "Periodo"; **doppio tap** resta la scorciatoia "Tutti i mesi" e, ripetuto, ripristina il periodo precedente
+  - Blocchi **allineati al calendario** (es. Bimestre Gen–Feb, Trimestre Gen–Mar, Semestre Gen–Giu) e frecce del carosello che scorrono dell'unità scelta
+  - Intervallo personalizzato con stepper **Da/A** (mese e anno) e correzione automatica dell'ordine
+  - Sheet del periodo con selezione applicata subito senza chiuderla (pulsante **Fatto**), corretta sopra la barra di sistema Android con striscia nera come la Home, e selezione esclusiva tra preset e personalizzato
+  - Nuove funzioni pure `startOfMonth`, `periodRange`, `shiftAnchor` e `formatPeriodLabel` coperte dai test (`scripts/finance.spec.mjs`)
+
 - **1.6.0** — Trasferimenti liberi, filtro "Trasferimento" e "Tutti i mesi" in Home:
   - **Trasferimenti liberi**: nel form "nuovo movimento" si scelgono direttamente conto di partenza e conto di arrivo (niente più Prelievo/Deposito), l'importo si sposta tra i due conti e non è né entrata né uscita; rimossa la creazione automatica del conto Contanti
   - In modifica di un trasferimento restano fissi i conti, si possono cambiare solo importo, data e nota
@@ -347,4 +355,4 @@ Per segnalazioni bug o richieste funzionalità:
 
 ---
 
-*Ultimo aggiornamento: Settembre 2026 - Versione 1.6.0*
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.7.0*
