@@ -24,6 +24,7 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, onS
   const allActiveRef = useRef(!!allActive);
   allActiveRef.current = !!allActive;
   const pager = usePagerSwipe();
+  const tapRef = useRef(null);
 
   useEffect(() => {
     if (prevMonthRef.current.getTime() === month.getTime()) return;
@@ -53,14 +54,26 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, onS
 
   const pan = useRef(
     PanResponder.create({
+      onStartShouldSetPanResponderCapture: () => shiftableRef.current && !allActiveRef.current,
       onMoveShouldSetPanResponder: (_, g) => shiftableRef.current && !allActiveRef.current && Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderGrant: () => pager?.lock(),
       onPanResponderMove: (_, g) => x.setValue(g.dx),
       onPanResponderRelease: (_, g) => {
+        pager?.unlock();
+        if (Math.abs(g.dx) < 8 && Math.abs(g.dy) < 8) {
+          const tap = tapRef.current;
+          tapRef.current = null;
+          if (tap) tap();
+          return;
+        }
+        tapRef.current = null;
         const thr = Math.max(30, slotRef.current * 0.4);
         if (g.dx > thr || (g.vx > 0.3 && g.dx > 15)) slide(1);
         else if (g.dx < -thr || (g.vx < -0.3 && g.dx < -15)) slide(-1);
         else cancelSwipe();
       },
+      onPanResponderTerminate: () => { pager?.unlock(); tapRef.current = null; x.setValue(0); },
     })
   ).current;
 
@@ -83,26 +96,21 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, onS
   const nextText = nextLabelProp ?? formatMonthLabel(addMonths(month, 1));
 
   return (
-    <View
-      style={styles.wrap}
-      onTouchStart={() => { if (shiftableRef.current && !allActiveRef.current) pager?.lock(); }}
-      onTouchEnd={() => pager?.unlock()}
-      onTouchCancel={() => pager?.unlock()}
-    >
+    <View style={styles.wrap}>
       <Pressable style={styles.arrowBtn} disabled={!shiftable} onPress={shiftable ? () => slide(1) : undefined} hitSlop={6} accessibilityLabel="Mese precedente">
         <Ionicons name="chevron-back" size={16} color={colors.primary} />
       </Pressable>
       <View style={styles.track} {...pan.panHandlers}>
         <Animated.View style={[styles.group, { transform: [{ translateX: x }] }]}>
-          <Pressable disabled={prevDisabled} onPress={prevDisabled ? undefined : () => slide(1)} hitSlop={6} onLayout={(e) => { prevW.current = e.nativeEvent.layout.width; updateSlot(); }}>
+          <Pressable disabled={prevDisabled} onTouchStart={prevDisabled ? undefined : () => { tapRef.current = () => slide(1); }} onPress={prevDisabled ? undefined : () => slide(1)} hitSlop={6} onLayout={(e) => { prevW.current = e.nativeEvent.layout.width; updateSlot(); }}>
             <Text style={[styles.side, prevDisabled && styles.sideDisabled]}>{prevText}</Text>
           </Pressable>
           <Animated.View onLayout={(e) => { chipW.current = e.nativeEvent.layout.width; updateSlot(); }} style={[{ opacity: z }]}>
-            <Pressable style={styles.chip} onPress={handleCenterPress} hitSlop={4}>
+            <Pressable style={styles.chip} onTouchStart={prevDisabled ? undefined : () => { tapRef.current = handleCenterPress; }} onPress={handleCenterPress} hitSlop={4}>
               <Text style={styles.chipText}>{label}</Text>
             </Pressable>
           </Animated.View>
-          <Pressable disabled={nextDisabled} onPress={nextDisabled ? undefined : () => slide(-1)} hitSlop={6}>
+          <Pressable disabled={nextDisabled} onTouchStart={nextDisabled ? undefined : () => { tapRef.current = () => slide(-1); }} onPress={nextDisabled ? undefined : () => slide(-1)} hitSlop={6}>
             <Text style={[styles.side, nextDisabled && styles.sideDisabled]}>{nextText}</Text>
           </Pressable>
         </Animated.View>
