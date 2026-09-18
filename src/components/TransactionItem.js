@@ -20,7 +20,7 @@ export default function TransactionItem({ transaction, onPress, onDelete, accoun
         <View style={styles.body}>
           <Text style={styles.desc}>
             {isTransfer
-              ? transaction.note || (transaction.direction === 'deposito' ? 'Deposito contanti' : 'Prelievo contanti')
+              ? transaction.note || (transaction.direction ? (transaction.direction === 'deposito' ? 'Deposito' : 'Prelievo') : 'Trasferimento')
               : transaction.note || cat.label}
           </Text>
           <Text style={styles.sub}>

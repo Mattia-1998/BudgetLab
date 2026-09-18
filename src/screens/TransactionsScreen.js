@@ -6,7 +6,7 @@ import { db } from '../../firebase/db';
 import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
 import { CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategoryFilter } from '../constants/categories';
-import { monthRange, isInRange } from '../utils/finance';
+import { monthRange, isInRange, matchesAccountFilter } from '../utils/finance';
 import { formatMonthLabel } from '../utils/format';
 import TransactionItem from '../components/TransactionItem';
 import TransactionFormModal from '../components/TransactionFormModal';
@@ -37,7 +37,7 @@ export default function TransactionsScreen() {
     return transactions
       .filter((t) => {
         if (kind !== 'all' && t.kind !== kind) return false;
-        if (accountId !== 'all' && t.accountId !== accountId) return false;
+        if (!matchesAccountFilter(t, accountId)) return false;
         if (!matchesCategoryFilter(selectedCategories, t.category)) return false;
         if (range && !isInRange(t.date, range.startMs, range.endMs)) return false;
         if (q) {
