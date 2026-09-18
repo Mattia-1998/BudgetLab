@@ -3,9 +3,11 @@ import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from
 import { Ionicons } from '@expo/vector-icons';
 import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
-import { monthRange, isInRange, totalBalance, sumByKind } from '../utils/finance';
-import { formatMonthLabel, formatCurrency } from '../utils/format';
+import { isInRange, totalBalance, sumByKind } from '../utils/finance';
+import { formatCurrency } from '../utils/format';
 import MonthCarousel from '../components/MonthCarousel';
+import PeriodSheet from '../components/PeriodSheet';
+import usePeriod from '../hooks/usePeriod';
 import AccountCards from '../components/AccountCards';
 import ExpensePie from '../components/ExpensePie';
 import TransactionItem from '../components/TransactionItem';
@@ -16,17 +18,14 @@ import { colors } from '../theme/colors';
 export default function HomeScreen() {
   const { accounts, loading: loadingAccts, error: errorAccts } = useAccounts();
   const { transactions, loading: loadingTxs, error: errorTxs } = useTransactions();
-  const [month, setMonth] = useState(() => new Date());
-  const [allMonths, setAllMonths] = useState(false);
+  const [periodVisible, setPeriodVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState(null);
+  const { period, startMs, endMs, label, prevLabel, nextLabel, allActive, shiftable, prev, next, toggleAll, applyPeriod } = usePeriod();
 
   if (loadingAccts || loadingTxs) return <View style={styles.center}><ActivityIndicator size="large" /></View>;
   if (errorAccts || errorTxs) return <View style={styles.center}><Text style={styles.errorText}>Errore Firestore</Text></View>;
 
-  const range = allMonths ? null : monthRange(month);
-  const startMs = range ? range.startMs : -Infinity;
-  const endMs = range ? range.endMs : Infinity;
   const total = totalBalance(accounts, transactions);
   const income = sumByKind(transactions, 'income', startMs, endMs);
   const expense = sumByKind(transactions, 'expense', startMs, endMs);
@@ -35,14 +34,11 @@ export default function HomeScreen() {
     .sort((a, b) => b.date - a.date);
   const recent = monthTx.slice(0, 10);
 
-  const prev = () => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
-  const next = () => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
-
   return (
     <View style={styles.container}>
       <OfflineBanner />
       <View style={styles.carouselRow}>
-        <MonthCarousel month={month} label={allMonths ? 'Tutti i mesi' : formatMonthLabel(month)} onPrev={prev} onNext={next} onAll={() => setAllMonths((v) => !v)} allActive={allMonths} />
+        <MonthCarousel month={new Date(period.anchor)} label={label} prevLabel={prevLabel} nextLabel={nextLabel} onPrev={prev} onNext={next} onAll={toggleAll} onSelect={() => setPeriodVisible(true)} allActive={allActive} shiftable={shiftable} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {accounts.length === 0 && !loadingAccts && !loadingTxs && !errorAccts && !errorTxs ? (
@@ -57,11 +53,11 @@ export default function HomeScreen() {
           </View>
         </View>
         <AccountCards accounts={accounts} transactions={transactions} />
-        <Text style={styles.sectionTitle}>Spese per categoria · {allMonths ? 'Tutti i mesi' : formatMonthLabel(month)}</Text>
+        <Text style={styles.sectionTitle}>Spese per categoria · {label}</Text>
         <ExpensePie transactions={transactions} startMs={startMs} endMs={endMs} />
         <Text style={styles.sectionTitle}>Ultimi movimenti</Text>
         {recent.length === 0 ? (
-          <Text style={styles.empty}>{allMonths ? 'Nessun movimento.' : 'Nessun movimento in questo mese.'}</Text>
+          <Text style={styles.empty}>{allActive ? 'Nessun movimento.' : 'Nessun movimento nel periodo.'}</Text>
         ) : (
           recent.map((t) => (
             <TransactionItem key={t.id} transaction={t} onPress={() => { setEditing(t); setModalVisible(true); }} accountById={Object.fromEntries(accounts.map((a) => [a.id, a]))} />
@@ -71,6 +67,7 @@ export default function HomeScreen() {
       <Pressable style={styles.fab} onPress={() => { setEditing(null); setModalVisible(true); }}>
         <Ionicons name="add" size={30} color="#fff" />
       </Pressable>
+      <PeriodSheet visible={periodVisible} period={period} onSelect={applyPeriod} onClose={() => setPeriodVisible(false)} />
       <TransactionFormModal visible={modalVisible} onClose={() => setModalVisible(false)} accounts={accounts} initial={editing} />
     </View>
   );
