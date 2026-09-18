@@ -9,12 +9,19 @@ import { colors } from '../theme/colors';
 export default function MainTabs() {
   const pagerRef = useRef(null);
   const [index, setIndex] = useState(0);
+  const [loaded, setLoaded] = useState([0]);
+
+  const ensureLoaded = useCallback((i) => {
+    if (i < 0 || i >= TABS.length) return;
+    setLoaded((prev) => (prev.includes(i) ? prev : [...prev, i]));
+  }, []);
 
   const selectTab = useCallback((i) => {
     if (i === index) return;
+    ensureLoaded(i);
     setIndex(i);
     pagerRef.current?.setPage(i);
-  }, [index]);
+  }, [index, ensureLoaded]);
 
   return (
     <View style={styles.container}>
@@ -23,13 +30,23 @@ export default function MainTabs() {
         ref={pagerRef}
         style={styles.pager}
         initialPage={0}
-        onPageSelected={(e) => setIndex(e.nativeEvent.position)}
+        offscreenPageLimit={2}
+        onPageSelected={(e) => {
+          const i = e.nativeEvent.position;
+          ensureLoaded(i);
+          setIndex(i);
+        }}
+        onPageScroll={(e) => {
+          const { position, offset } = e.nativeEvent;
+          ensureLoaded(position);
+          if (offset > 0) ensureLoaded(position + 1);
+        }}
       >
-        {TABS.map((tab) => {
+        {TABS.map((tab, i) => {
           const Screen = tab.component;
           return (
             <View key={tab.name} style={styles.page} collapsable={false}>
-              <Screen />
+              {loaded.includes(i) ? <Screen /> : null}
             </View>
           );
         })}
