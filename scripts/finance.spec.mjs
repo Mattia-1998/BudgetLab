@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt, matchesAccountFilter, startOfMonth, periodRange, shiftAnchor } from '../src/utils/finance.js';
 import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategorySelection } from '../src/constants/categories.js';
-import { formatCurrency } from '../src/utils/format.js';
+import { formatCurrency, formatPeriodLabel } from '../src/utils/format.js';
 
 const d = (y, m, day) => new Date(y, m - 1, day, 12, 0, 0).getTime();
 const txs = [
@@ -206,5 +206,14 @@ assert.equal(shiftAnchor(d(2026, 7, 20), 'quarter', 1), new Date(2026, 9, 1).get
 assert.equal(shiftAnchor(d(2026, 2, 5), 'year', 1), new Date(2027, 1, 1).getTime());
 assert.equal(shiftAnchor(d(2026, 7, 20), 'all', 1), d(2026, 7, 20));
 assert.equal(shiftAnchor(d(2026, 7, 20), 'custom', -1), d(2026, 7, 20));
+
+assert.equal(formatPeriodLabel({ mode: 'month', anchor: d(2026, 7, 1) }), 'Luglio 2026');
+assert.equal(formatPeriodLabel({ mode: 'bimester', anchor: d(2026, 7, 1) }), 'Bim. Lug\u2013Ago 2026');
+assert.equal(formatPeriodLabel({ mode: 'quarter', anchor: d(2026, 7, 1) }), 'Trim. Lug\u2013Set 2026');
+assert.equal(formatPeriodLabel({ mode: 'semester', anchor: d(2026, 9, 1) }), 'Sem. Lug\u2013Dic 2026');
+assert.equal(formatPeriodLabel({ mode: 'year', anchor: d(2026, 2, 1) }), '2026');
+assert.equal(formatPeriodLabel({ mode: 'all' }), 'Tutti i mesi');
+assert.equal(formatPeriodLabel({ mode: 'custom', customStart: d(2026, 7, 1), customEnd: d(2026, 9, 1) }), 'Lug \u2013 Set 2026');
+assert.equal(formatPeriodLabel({ mode: 'custom', customStart: d(2025, 11, 1), customEnd: d(2026, 2, 1) }), 'Nov 2025 \u2013 Feb 2026');
 
 console.log('Tutti i controlli di finanza/format/categorie passano.');
