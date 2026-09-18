@@ -5,7 +5,7 @@ import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
-import { CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategoryFilter } from '../constants/categories';
+import { CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategorySelection } from '../constants/categories';
 import { monthRange, isInRange, matchesAccountFilter } from '../utils/finance';
 import { formatMonthLabel } from '../utils/format';
 import TransactionItem from '../components/TransactionItem';
@@ -38,7 +38,7 @@ export default function TransactionsScreen() {
       .filter((t) => {
         if (kind !== 'all' && t.kind !== kind) return false;
         if (!matchesAccountFilter(t, accountId)) return false;
-        if (!matchesCategoryFilter(selectedCategories, t.category)) return false;
+        if (!matchesCategorySelection(selectedCategories, t)) return false;
         if (range && !isInRange(t.date, range.startMs, range.endMs)) return false;
         if (q) {
           const catLabel = (CATEGORY_MAP[t.category] || CATEGORY_MAP.altro).label.toLowerCase();

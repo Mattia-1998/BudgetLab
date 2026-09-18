@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
-import { CATEGORIES } from '../constants/categories';
+import { SPENDING_CATEGORIES } from '../constants/categories';
 import Segmented from './Segmented';
 import { colors } from '../theme/colors';
 
@@ -25,7 +25,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState('expense');
   const [transferTo, setTransferTo] = useState(null);
-  const [category, setCategory] = useState(CATEGORIES[0].key);
+  const [category, setCategory] = useState(SPENDING_CATEGORIES[0].key);
   const [accountId, setAccountId] = useState(null);
   const [date, setDate] = useState('');
   const [note, setNote] = useState('');
@@ -35,7 +35,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const syncState = () => {
     setAmount(initial ? String(initial.amount) : '');
     setKind(initial ? initial.kind : 'expense');
-    setCategory(initial ? initial.category : CATEGORIES[0].key);
+    setCategory(initial ? initial.category : SPENDING_CATEGORIES[0].key);
     setAccountId(initial ? initial.accountId : null);
     setTransferTo(initial && initial.kind === 'transfer' ? initial.transferTo : null);
     setDate(initial ? toDmy(initial.date) : toDmy(Date.now()));
@@ -125,7 +125,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
             <>
               <Text style={styles.fieldLabel}>Categoria</Text>
               <View style={styles.catGrid}>
-                {CATEGORIES.map((c) => {
+                {SPENDING_CATEGORIES.map((c) => {
                   const active = category === c.key;
                   return (
                     <Pressable key={c.key} style={[styles.cat, active && { borderColor: c.color, borderWidth: 2 }]} onPress={() => setCategory(c.key)}>
