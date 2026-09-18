@@ -9,11 +9,14 @@ const GAP = 24;
 
 const addMonths = (d, n) => new Date(d.getFullYear(), d.getMonth() + n, 1);
 
-export default function MonthCarousel({ month, label, onPrev, onNext, onAll, allActive }) {
+export default function MonthCarousel({ month, label, onPrev, onNext, onAll, onSelect, allActive, shiftable = true, prevLabel: prevLabelProp, nextLabel: nextLabelProp }) {
   const slotRef = useRef(143.5);
   const prevW = useRef(75);
   const chipW = useRef(164);
   const lastTap = useRef(0);
+  const tapTimer = useRef(null);
+  const shiftableRef = useRef(shiftable);
+  shiftableRef.current = shiftable;
   const x = useRef(new Animated.Value(0)).current;
   const z = useRef(new Animated.Value(1)).current;
   const prevMonthRef = useRef(month);
@@ -26,6 +29,8 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
     z.setValue(0.25);
     Animated.timing(z, { toValue: 1, duration: 220, useNativeDriver: false }).start();
   }, [month]);
+
+  useEffect(() => () => { if (tapTimer.current) clearTimeout(tapTimer.current); }, []);
 
   const updateSlot = () => {
     slotRef.current = (prevW.current + chipW.current) / 2 + GAP;
@@ -46,7 +51,7 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
 
   const pan = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => !allActiveRef.current && Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
+      onMoveShouldSetPanResponder: (_, g) => shiftableRef.current && !allActiveRef.current && Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
       onPanResponderMove: (_, g) => x.setValue(g.dx),
       onPanResponderRelease: (_, g) => {
         const thr = Math.max(30, slotRef.current * 0.4);
@@ -58,25 +63,32 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
   ).current;
 
   const handleCenterPress = () => {
-    if (!onAll) return;
     const now = Date.now();
-    if (now - lastTap.current < DOUBLE_TAP_MS) { lastTap.current = 0; onAll(); } else lastTap.current = now;
+    if (now - lastTap.current < DOUBLE_TAP_MS) {
+      lastTap.current = 0;
+      if (tapTimer.current) { clearTimeout(tapTimer.current); tapTimer.current = null; }
+      onAll?.();
+      return;
+    }
+    lastTap.current = now;
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => { tapTimer.current = null; onSelect?.(); }, DOUBLE_TAP_MS);
   };
 
-  const prevDisabled = !!allActive;
-  const nextDisabled = !!allActive;
-  const prevLabel = formatMonthLabel(addMonths(month, -1));
-  const nextLabel = formatMonthLabel(addMonths(month, 1));
+  const prevDisabled = !shiftable || !!allActive;
+  const nextDisabled = !shiftable || !!allActive;
+  const prevText = prevLabelProp ?? formatMonthLabel(addMonths(month, -1));
+  const nextText = nextLabelProp ?? formatMonthLabel(addMonths(month, 1));
 
   return (
     <View style={styles.wrap}>
-      <Pressable style={styles.arrowBtn} onPress={() => slide(1)} hitSlop={6} accessibilityLabel="Mese precedente">
+      <Pressable style={styles.arrowBtn} disabled={!shiftable} onPress={shiftable ? () => slide(1) : undefined} hitSlop={6} accessibilityLabel="Mese precedente">
         <Ionicons name="chevron-back" size={16} color={colors.primary} />
       </Pressable>
       <View style={styles.track} {...pan.panHandlers}>
         <Animated.View style={[styles.group, { transform: [{ translateX: x }] }]}>
           <Pressable disabled={prevDisabled} onPress={prevDisabled ? undefined : () => slide(1)} hitSlop={6} onLayout={(e) => { prevW.current = e.nativeEvent.layout.width; updateSlot(); }}>
-            <Text style={[styles.side, prevDisabled && styles.sideDisabled]}>{prevLabel}</Text>
+            <Text style={[styles.side, prevDisabled && styles.sideDisabled]}>{prevText}</Text>
           </Pressable>
           <Animated.View onLayout={(e) => { chipW.current = e.nativeEvent.layout.width; updateSlot(); }} style={[{ opacity: z }]}>
             <Pressable style={styles.chip} onPress={handleCenterPress} hitSlop={4}>
@@ -84,11 +96,11 @@ export default function MonthCarousel({ month, label, onPrev, onNext, onAll, all
             </Pressable>
           </Animated.View>
           <Pressable disabled={nextDisabled} onPress={nextDisabled ? undefined : () => slide(-1)} hitSlop={6}>
-            <Text style={[styles.side, nextDisabled && styles.sideDisabled]}>{nextLabel}</Text>
+            <Text style={[styles.side, nextDisabled && styles.sideDisabled]}>{nextText}</Text>
           </Pressable>
         </Animated.View>
       </View>
-      <Pressable style={styles.arrowBtn} onPress={() => slide(-1)} hitSlop={6} accessibilityLabel="Mese successivo">
+      <Pressable style={styles.arrowBtn} disabled={!shiftable} onPress={shiftable ? () => slide(-1) : undefined} hitSlop={6} accessibilityLabel="Mese successivo">
         <Ionicons name="chevron-forward" size={16} color={colors.primary} />
       </Pressable>
     </View>
