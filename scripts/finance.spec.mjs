@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt, matchesAccountFilter } from '../src/utils/finance.js';
+import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt, matchesAccountFilter, startOfMonth, periodRange, shiftAnchor } from '../src/utils/finance.js';
 import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategorySelection } from '../src/constants/categories.js';
 import { formatCurrency } from '../src/utils/format.js';
 
@@ -168,5 +168,43 @@ assert.equal(matchesAccountFilter(transferTx, 'c3'), false); // conto non coinvo
 assert.equal(matchesAccountFilter(txs[0], 'all'), true);
 assert.equal(matchesAccountFilter(txs[0], 'c1'), true);
 assert.equal(matchesAccountFilter(txs[0], 'c2'), false);
+
+assert.equal(startOfMonth(d(2026, 9, 20)), new Date(2026, 8, 1).getTime());
+
+assert.deepEqual(periodRange({ mode: 'month', anchor: d(2026, 9, 3) }), {
+  startMs: new Date(2026, 8, 1).getTime(),
+  endMs: new Date(2026, 9, 0, 23, 59, 59, 999).getTime(),
+});
+assert.deepEqual(periodRange({ mode: 'bimester', anchor: d(2026, 7, 20) }), {
+  startMs: new Date(2026, 6, 1).getTime(),
+  endMs: new Date(2026, 8, 0, 23, 59, 59, 999).getTime(),
+});
+assert.deepEqual(periodRange({ mode: 'bimester', anchor: d(2026, 4, 10) }), {
+  startMs: new Date(2026, 2, 1).getTime(),
+  endMs: new Date(2026, 4, 0, 23, 59, 59, 999).getTime(),
+});
+assert.deepEqual(periodRange({ mode: 'quarter', anchor: d(2026, 4, 10) }), {
+  startMs: new Date(2026, 3, 1).getTime(),
+  endMs: new Date(2026, 6, 0, 23, 59, 59, 999).getTime(),
+});
+assert.deepEqual(periodRange({ mode: 'semester', anchor: d(2026, 9, 3) }), {
+  startMs: new Date(2026, 6, 1).getTime(),
+  endMs: new Date(2026, 11, 31, 23, 59, 59, 999).getTime(),
+});
+assert.deepEqual(periodRange({ mode: 'year', anchor: d(2026, 2, 5) }), {
+  startMs: new Date(2026, 0, 1).getTime(),
+  endMs: new Date(2026, 11, 31, 23, 59, 59, 999).getTime(),
+});
+assert.equal(periodRange({ mode: 'all' }), null);
+assert.deepEqual(periodRange({ mode: 'custom', customStart: d(2025, 7, 1), customEnd: d(2026, 9, 1) }), {
+  startMs: new Date(2025, 6, 1).getTime(),
+  endMs: new Date(2026, 9, 0, 23, 59, 59, 999).getTime(),
+});
+
+assert.equal(shiftAnchor(d(2026, 1, 15), 'month', -1), new Date(2025, 11, 1).getTime());
+assert.equal(shiftAnchor(d(2026, 7, 20), 'quarter', 1), new Date(2026, 9, 1).getTime());
+assert.equal(shiftAnchor(d(2026, 2, 5), 'year', 1), new Date(2027, 1, 1).getTime());
+assert.equal(shiftAnchor(d(2026, 7, 20), 'all', 1), d(2026, 7, 20));
+assert.equal(shiftAnchor(d(2026, 7, 20), 'custom', -1), d(2026, 7, 20));
 
 console.log('Tutti i controlli di finanza/format/categorie passano.');
