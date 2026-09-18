@@ -7,6 +7,7 @@ import { useAccounts } from '../hooks/useAccounts';
 import { useTransactions } from '../hooks/useTransactions';
 import { CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategorySelection } from '../constants/categories';
 import { isInRange, matchesAccountFilter } from '../utils/finance';
+import CategoryTile from '../components/CategoryTile';
 import TransactionItem from '../components/TransactionItem';
 import TransactionFormModal from '../components/TransactionFormModal';
 import MonthCarousel from '../components/MonthCarousel';
@@ -118,18 +119,27 @@ export default function TransactionsScreen() {
                 <View style={styles.section}>
                   <Text style={styles.sectionLabel}>Categoria</Text>
                   <View style={styles.catGrid}>
-                    <Pressable style={[styles.catTileBase, { width: tileWidth }, selectedCategories.length === 0 && styles.catAllActive]} onPress={() => setSelectedCategories([])}>
-                      <Ionicons name="apps-outline" size={22} color={selectedCategories.length === 0 ? '#fff' : colors.textMuted} />
-                      <Text style={[styles.catText, selectedCategories.length === 0 && styles.catTextActive]}>Tutte</Text>
-                    </Pressable>
+                    <CategoryTile
+                      icon="apps-outline"
+                      label="Tutte"
+                      color="#111827"
+                      inactiveColor={colors.textMuted}
+                      active={selectedCategories.length === 0}
+                      width={tileWidth}
+                      onPress={() => setSelectedCategories([])}
+                    />
                     {central.map((key) => {
                       const c = CATEGORY_MAP[key];
-                      const active = selectedCategories.includes(key);
                       return (
-                        <Pressable key={key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setSelectedCategories((s) => toggleCategory(s, key))}>
-                          <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
-                          <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
-                        </Pressable>
+                        <CategoryTile
+                          key={key}
+                          icon={c.icon}
+                          label={c.label}
+                          color={c.color}
+                          active={selectedCategories.includes(key)}
+                          width={tileWidth}
+                          onPress={() => setSelectedCategories((s) => toggleCategory(s, key))}
+                        />
                       );
                     })}
                     <Pressable style={[styles.catTileArrow, { width: tileWidth }, !categoriesExpanded && hasSelectedCategories(selectedCategories) && styles.catTileArrowActive]} onPress={toggleCategories}>
@@ -138,12 +148,16 @@ export default function TransactionsScreen() {
                     {categoriesExpanded
                       ? rest.map((key) => {
                           const c = CATEGORY_MAP[key];
-                          const active = selectedCategories.includes(key);
                           return (
-                            <Pressable key={key} style={[styles.catTileBase, { width: tileWidth }, active && { backgroundColor: c.color, borderColor: c.color }]} onPress={() => setSelectedCategories((s) => toggleCategory(s, key))}>
-                              <Ionicons name={c.icon} size={22} color={active ? '#fff' : c.color} />
-                              <Text style={[styles.catText, active && styles.catTextActive]}>{c.label}</Text>
-                            </Pressable>
+                            <CategoryTile
+                              key={key}
+                              icon={c.icon}
+                              label={c.label}
+                              color={c.color}
+                              active={selectedCategories.includes(key)}
+                              width={tileWidth}
+                              onPress={() => setSelectedCategories((s) => toggleCategory(s, key))}
+                            />
                           );
                         })
                       : null}
@@ -191,12 +205,8 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, color: colors.textMuted, marginBottom: 8 },
   sectionRow: { flexDirection: 'row', gap: 8, paddingRight: 16 },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  catTileBase: { height: 78, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  catAllActive: { backgroundColor: '#111827', borderColor: '#111827' },
   catTileArrow: { height: 78, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   catTileArrowActive: { backgroundColor: '#111827', borderColor: '#111827' },
-  catText: { fontSize: 11, fontWeight: '500', color: '#374151' },
-  catTextActive: { color: '#fff', fontWeight: '600' },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
   emptyCard: { marginTop: 24, marginHorizontal: 16, borderRadius: 24, borderWidth: 1, borderStyle: 'dashed', borderColor: '#D1D5DB', paddingVertical: 40, alignItems: 'center', backgroundColor: '#fff' },
   emptyIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
