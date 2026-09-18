@@ -1,10 +1,10 @@
 # Budget Lab
 
-**Versione:** 1.5.0  
+**Versione:** 1.6.0  
 **Piattaforma:** React Native (Expo)  
 **Backend:** Firebase  
 
-App mobile personale per la gestione di conti e movimenti finanziari, costruita con React Native ed Expo. I dati vengono sincronizzati su Cloud Firestore in tempo reale. Permette di gestire conti bancari, movimenti in entrata e uscita, trasferimenti Prelievo/Deposito tra conti, grafici delle spese per categoria, e monitorare la connessione con bufferizzazione offline.
+App mobile personale per la gestione di conti e movimenti finanziari, costruita con React Native ed Expo. I dati vengono sincronizzati su Cloud Firestore in tempo reale. Permette di gestire conti bancari, movimenti in entrata e uscita, trasferimenti liberi tra conti, grafici delle spese per categoria, e monitorare la connessione con bufferizzazione offline.
 
 ---
 
@@ -15,14 +15,15 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 - Entrate/uscite del mese corrente
 - Grafico a torta delle spese per categoria (usando `react-native-gifted-charts`)
 - Ultimi 10 movimenti in riepilogo
+- **Doppio tap sul mese** per passare a "Tutti i mesi": entrate/uscite, grafico categorie e ultimi movimenti si riferiscono all'intero storico
 
 ### 📋 Movimenti
 - Ricerca libera per titolo/nota
 - Filtri combinabili: tipo (entrate/uscite/trasferimenti), conto, categoria, mese
-- **Multi-selezione categorie**: più categorie insieme (filtro OR), riga a posizione fissa `[Tutte] [Cibo] [Trasporti] [⌄]`, griglia espandibile con le restanti 9 (wrap da 4), freccia illuminata con filtro attivo
-- MonthCarousel per scorrere i mesi
+- **Multi-selezione categorie**: più categorie insieme (filtro OR), riga a posizione fissa `[Tutte] [Cibo] [Trasporti] [⌄]`, griglia espandibile con le restanti 10 (wrap da 4, inclusa la categoria **Trasferimento**), freccia illuminata con filtro attivo
+- MonthCarousel per scorrere i mesi, con doppio tap per "Tutti i mesi"
 - Aggiunta, modifica e eliminazione movimenti
-- Trasferimenti **Prelievo/Deposito** con controparte Contanti selezionabile (o creata automaticamente)
+- Trasferimenti liberi tra un **conto di partenza** e un **conto di arrivo** (nessuna direzione Prelievo/Deposito, nessuna creazione automatica di Contanti)
 - Trasferimenti mostrati in grigio neutro con percorso "sorgente → destinazione"
 - Sezione "Conto" a pill con pallino colore del conto associato
 - Scroll unico con intestazione e lista nel `ListHeaderComponent`
@@ -38,7 +39,7 @@ App mobile personale per la gestione di conti e movimenti finanziari, costruita 
 - **Riordino con long-press e drag animato**: tieni premuto un conto per sollevarlo (vibrazione + card fantasma ancorata al dito) e trascinalo per cambiarne l'ordine; durante il trascinamento le altre card si spostano con un'animazione per fare spazio e al rilascio la card atterra nella nuova posizione; l'ordine è salvato e vale in tutta l'app
 
 ### 📊 Categorie di spesa
-11 categorie predefinite: Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Stipendio, Shopping, Altro — ciascuna con icona e colore dedicati. Lo Stipendio è pensato per le entrate.
+12 categorie predefinite: Cibo, Trasporti, Casa, Bollette, Salute, Svago, Sport, Auto, Stipendio, Shopping, Altro, Trasferimento — ciascuna con icona e colore dedicati. Lo Stipendio è pensato per le entrate; **Trasferimento** è selezionabile solo come filtro nei Movimenti e non compare nel form di inserimento.
 
 ### 🔌 Modalità offline
 - Indicatore di connessione in tempo reale (tramite `expo-network`)
@@ -165,7 +166,7 @@ Cobol/
 │   │   └── useNetworkStatus.js     # Rilevamento connessione via expo-network
 │   │
 │   ├── constants/
-│   │   └── categories.js           # 10 categorie spesa (chiave, label, icona, colore)
+│   │   └── categories.js           # 12 categorie spesa (chiave, label, icona, colore)
 │   │
 │   ├── theme/
 │   │   └── colors.js               # Palette colori globale (primary, negative, background, ecc.)
@@ -223,14 +224,14 @@ Cobol/
 ```javascript
 {
   kind: "transfer",           // terza tipologia
-  direction: "prelievo",      // "prelievo" (conto → Contanti) | "deposito" (Contanti → conto)
-  accountId: "carta123",      // ID del conto sorgente (i soldi escono)
-  transferTo: "contanti123",  // ID del conto destinazione (i soldi arrivano)
+  accountId: "carta123",      // ID del conto di partenza (i soldi escono)
+  transferTo: "contanti123",  // ID del conto di arrivo (i soldi arrivano)
   amount: 50,                 // importo in euro (≥ 0)
   date: 1726550400000,        // timestamp ms della data
   note: "Bancomat"            // opzionale (nessuna categoria)
 }
 ```
+Il trasferimento non è né entrata né uscita: è visibile in grigio, appare sotto il filtro di entrambi i conti e concorre al filtro categoria **Trasferimento** (l'eventuale campo legacy `direction` è ignorato).
 
 ---
 
@@ -243,11 +244,18 @@ Verifica la correttezza della logica pura:
 - Calcolo saldi per conto (`accountBalance`)
 - Somme totali, entrate e uscite
 - Formattazione valuta (`formatCurrency`)
-- Integrità lista categorie (`CATEGORIES.length === 11`)
+- Integrità lista categorie (`CATEGORIES.length === 12`)
 
 ---
 
 ## 📋 Changelog
+
+- **1.6.0** — Trasferimenti liberi, filtro "Trasferimento" e "Tutti i mesi" in Home:
+  - **Trasferimenti liberi**: nel form "nuovo movimento" si scelgono direttamente conto di partenza e conto di arrivo (niente più Prelievo/Deposito), l'importo si sposta tra i due conti e non è né entrata né uscita; rimossa la creazione automatica del conto Contanti
+  - In modifica di un trasferimento restano fissi i conti, si possono cambiare solo importo, data e nota
+  - Trasferimento visibile sotto il filtro di **entrambi** i conti coinvolti, con etichetta generica "Trasferimento"
+  - Nuova categoria **Trasferimento** (12 totali): tile nella griglia espandibile dei filtri categoria dei Movimenti, in OR con le altre; non è selezionabile nel form (le categorie di spesa restano 11)
+  - **Home "Tutti i mesi"**: doppio tap sul chip del mese per vedere entrate/uscite, grafico categorie e ultimi movimenti sull'intero storico (frecce e swipe disabilitati quando attivo), come nei Movimenti
 
 - **1.5.0** — Animazioni nel riordino dei conti:
   - La card fantasma è ancorata esattamente al punto di pressione e segue subito il dito, senza scatto iniziale
@@ -339,4 +347,4 @@ Per segnalazioni bug o richieste funzionalità:
 
 ---
 
-*Ultimo aggiornamento: Settembre 2026 - Versione 1.5.0*
+*Ultimo aggiornamento: Settembre 2026 - Versione 1.6.0*
