@@ -10,9 +10,12 @@ export const CATEGORIES = [
   { key: 'shopping', label: 'Shopping', icon: 'bag-handle-outline', color: '#43A047' },
   { key: 'stipendio', label: 'Stipendio', icon: 'cash-outline', color: '#00838F' },
   { key: 'altro', label: 'Altro', icon: 'ellipsis-horizontal-outline', color: '#757575' },
+  { key: 'trasferimento', label: 'Trasferimento', icon: 'swap-horizontal-outline', color: '#9CA3AF' },
 ];
 
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.key, c]));
+
+export const SPENDING_CATEGORIES = CATEGORIES.filter((c) => c.key !== 'trasferimento');
 
 export function orderedCategoryKeys() {
   const standard = CATEGORIES.map((c) => c.key);
@@ -29,6 +32,8 @@ export function hasSelectedCategories(selectedKeys) {
   return selectedKeys.length > 0;
 }
 
-export function matchesCategoryFilter(selectedKeys, category) {
-  return selectedKeys.length === 0 || selectedKeys.includes(category);
+export function matchesCategorySelection(selectedKeys, transaction) {
+  if (selectedKeys.length === 0) return true;
+  if (transaction.kind === 'transfer') return selectedKeys.includes('trasferimento');
+  return selectedKeys.includes(transaction.category);
 }

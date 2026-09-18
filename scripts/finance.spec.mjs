@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt, matchesAccountFilter } from '../src/utils/finance.js';
-import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategoryFilter } from '../src/constants/categories.js';
+import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategorySelection } from '../src/constants/categories.js';
 import { formatCurrency } from '../src/utils/format.js';
 
 const d = (y, m, day) => new Date(y, m - 1, day, 12, 0, 0).getTime();
@@ -53,7 +53,7 @@ assert.equal(catsAll, 60); // i trasferimenti non compaiono come spese
 assert.equal(sumByKind(all, 'income', startMs, endMs), 100);
 assert.equal(sumByKind(all, 'expense', startMs, endMs), 60);
 
-assert.equal(CATEGORIES.length, 11);
+assert.equal(CATEGORIES.length, 12);
 assert.equal(CATEGORY_MAP.stipendio.label, 'Stipendio');
 assert.equal(CATEGORY_MAP.stipendio.icon, 'cash-outline');
 assert.equal(CATEGORY_MAP.stipendio.color, '#00838F');
@@ -62,7 +62,7 @@ assert.equal(formatCurrency(12.5), '12,50\u00a0€');
 
 assert.deepEqual(orderedCategoryKeys(), {
   central: ['cibo', 'trasporti'],
-  rest: ['casa', 'bollette', 'salute', 'svago', 'sport', 'auto', 'shopping', 'stipendio', 'altro'],
+  rest: ['casa', 'bollette', 'salute', 'svago', 'sport', 'auto', 'shopping', 'stipendio', 'altro', 'trasferimento'],
 });
 
 assert.deepEqual(toggleCategory([], 'cibo'), ['cibo']);
@@ -74,10 +74,15 @@ assert.deepEqual(toggleCategory(['cibo', 'trasporti'], 'cibo'), ['trasporti']);
 assert.equal(hasSelectedCategories([]), false);
 assert.equal(hasSelectedCategories(['cibo']), true);
 
-assert.equal(matchesCategoryFilter([], 'cibo'), true);        // set vuoto = nessun filtro
-assert.equal(matchesCategoryFilter(['cibo'], 'cibo'), true);
-assert.equal(matchesCategoryFilter(['cibo'], 'trasporti'), false);
-assert.equal(matchesCategoryFilter(['cibo', 'trasporti'], 'trasporti'), true);
+assert.equal(matchesCategorySelection([], txs[1]), true);                                  // set vuoto = nessun filtro
+const transferForCat = { id: 'tc1', kind: 'transfer', accountId: 'c1', transferTo: 'c2', amount: 10 };
+assert.equal(matchesCategorySelection(['trasferimento'], transferForCat), true);           // trasferimento con tile Trasferimento
+assert.equal(matchesCategorySelection(['cibo'], transferForCat), false);                   // trasferimento senza tile Trasferimento
+assert.equal(matchesCategorySelection(['cibo'], txs[1]), true);                            // uscita Cibo con categoria Cibo
+assert.equal(matchesCategorySelection(['trasporti'], txs[1]), false);                      // uscita Cibo con altra categoria
+assert.equal(matchesCategorySelection(['cibo', 'trasferimento'], transferForCat), true);   // OR
+assert.equal(matchesCategorySelection(['cibo', 'trasferimento'], txs[1]), true);           // OR
+assert.equal(matchesCategorySelection(['cibo', 'trasferimento'], txs[3]), false);          // OR, categoria non selezionata
 
 assert.deepEqual(
   sortAccountsByOrder([
