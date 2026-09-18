@@ -24,8 +24,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState('expense');
-  const [direction, setDirection] = useState('prelievo');
-  const [cashAccountId, setCashAccountId] = useState(null);
+  const [transferTo, setTransferTo] = useState(null);
   const [category, setCategory] = useState(CATEGORIES[0].key);
   const [accountId, setAccountId] = useState(null);
   const [date, setDate] = useState('');
@@ -36,10 +35,9 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const syncState = () => {
     setAmount(initial ? String(initial.amount) : '');
     setKind(initial ? initial.kind : 'expense');
-    setDirection(initial && initial.direction ? initial.direction : 'prelievo');
     setCategory(initial ? initial.category : CATEGORIES[0].key);
     setAccountId(initial ? initial.accountId : null);
-    setCashAccountId(initial && initial.kind === 'transfer' ? (initial.direction === 'deposito' ? initial.accountId : initial.transferTo) : null);
+    setTransferTo(initial && initial.kind === 'transfer' ? initial.transferTo : null);
     setDate(initial ? toDmy(initial.date) : toDmy(Date.now()));
     setNote(initial && initial.note ? initial.note : '');
     setError(null);
@@ -65,30 +63,20 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const save = async () => {
     const value = Number(String(amount).replace(',', '.'));
     if (!(value > 0)) { setError('Inserisci un importo valido'); return; }
-    if (!accountId) { setError('Seleziona un conto'); return; }
     const tsMs = parseDate(date);
     if (tsMs == null) { setError('Data non valida (usare GG/MM/AAAA)'); return; }
     if (kind === 'transfer') {
+      if (!accountId) { setError('Seleziona il conto di partenza'); return; }
+      if (!transferTo) { setError('Seleziona il conto di arrivo'); return; }
+      if (accountId === transferTo) { setError('Scegli due conti diversi'); return; }
       try {
         if (isEdit) {
           await updateDoc(doc(db, 'transactions', initial.id), { amount: value, date: tsMs, note: note.trim() });
         } else {
-          let cashAcct = accounts.find((a) => a.id === cashAccountId);
-          if (!cashAcct) {
-            const ref = await addDoc(collection(db, 'accounts'), {
-              name: 'Contanti',
-              type: 'contanti',
-              color: '#757575',
-              initialBalance: 0,
-              createdAt: Date.now(),
-            });
-            cashAcct = { id: ref.id };
-          }
           await addDoc(collection(db, 'transactions'), {
             kind: 'transfer',
-            direction,
-            accountId: direction === 'prelievo' ? accountId : cashAcct.id,
-            transferTo: direction === 'prelievo' ? cashAcct.id : accountId,
+            accountId,
+            transferTo,
             amount: value,
             date: tsMs,
             note: note.trim(),
@@ -100,6 +88,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
       }
       return;
     }
+    if (!accountId) { setError('Seleziona un conto'); return; }
     const data = { accountId, amount: value, kind, category, date: tsMs, note: note.trim() };
     try {
       if (isEdit) {
@@ -120,17 +109,10 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
           <ScrollView style={styles.card}>
           <Text style={styles.title}>{isEdit ? 'Modifica movimento' : 'Nuovo movimento'}</Text>
           <Segmented
-            options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }, { value: 'transfer', label: 'Prelievo/Deposito' }]}
+            options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }, { value: 'transfer', label: 'Trasferimento' }]}
             value={kind}
-            onChange={(v) => { setKind(v); if (v === 'transfer' && !isEdit) { setAccountId(null); const firstCash = accounts.find((a) => a.type === 'contanti'); setCashAccountId(firstCash ? firstCash.id : null); } }}
+            onChange={(v) => { setKind(v); if (v === 'transfer' && !isEdit) { setAccountId(null); setTransferTo(null); } }}
           />
-          {kind === 'transfer' && !isEdit ? (
-            <Segmented
-              options={[{ value: 'prelievo', label: 'Prelievo' }, { value: 'deposito', label: 'Deposito' }]}
-              value={direction}
-              onChange={setDirection}
-            />
-          ) : null}
           <TextInput
             style={styles.input}
             placeholder="Importo (es. 12,50)"
@@ -162,28 +144,38 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
               return (
                 <View style={styles.readonlyBox}>
                   <Text style={styles.readonlyText}>
-                    {(src ? src.name : 'Conto')} → {(dst ? dst.name : 'Conto')} · {initial.direction === 'deposito' ? 'Deposito' : 'Prelievo'}
+                    {(src ? src.name : 'Conto')} → {(dst ? dst.name : 'Conto')}
                   </Text>
-                  <Text style={styles.readonlyHint}>Direzione e conti non modificabili in modifica.</Text>
+                  <Text style={styles.readonlyHint}>Conti non modificabili in modifica.</Text>
                 </View>
               );
             })()
           ) : (
             <>
-              {chipRow({
-                label: kind === 'transfer' ? (direction === 'deposito' ? 'Conto in cui depositare' : 'Conto da cui prelevare') : 'Conto',
-                list: kind === 'transfer' ? accounts.filter((a) => a.type !== 'contanti') : accounts,
+              {kind === 'transfer' ? (
+                <>
+                  {chipRow({
+                    label: 'Conto di partenza',
+                    list: accounts.filter((a) => a.id !== transferTo),
+                    value: accountId,
+                    onChange: setAccountId,
+                    emptyMsg: 'Nessun conto disponibile: crea prima un conto.',
+                  })}
+                  {chipRow({
+                    label: 'Conto di arrivo',
+                    list: accounts.filter((a) => a.id !== accountId),
+                    value: transferTo,
+                    onChange: setTransferTo,
+                    emptyMsg: 'Nessun conto disponibile: crea prima un conto.',
+                  })}
+                </>
+              ) : chipRow({
+                label: 'Conto',
+                list: accounts,
                 value: accountId,
                 onChange: setAccountId,
-                emptyMsg: kind === 'transfer' ? 'Nessun conto non-contanti disponibile: crea prima un conto.' : 'Nessun conto: crea prima un conto.',
+                emptyMsg: 'Nessun conto: crea prima un conto.',
               })}
-              {kind === 'transfer' ? chipRow({
-                label: direction === 'deposito' ? 'Contanti da cui prelevare' : 'Contanti in cui depositare',
-                list: accounts.filter((a) => a.type === 'contanti'),
-                value: cashAccountId,
-                onChange: setCashAccountId,
-                emptyMsg: 'Nessun conto Contanti: verrà creato automaticamente.',
-              }) : null}
             </>
           )}
           <Text style={styles.fieldLabel}>Data (GG/MM/AAAA)</Text>
