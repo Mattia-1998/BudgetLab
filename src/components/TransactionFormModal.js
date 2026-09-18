@@ -23,7 +23,7 @@ const toDmy = (ts) => {
 export default function TransactionFormModal({ visible, onClose, accounts, initial }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const tileWidth = Math.floor((width - 64) / 4);
+  const tileWidth = Math.floor(((width - 64) / 4) * 0.82);
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState('expense');
   const [transferTo, setTransferTo] = useState(null);
@@ -135,7 +135,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
                     color={c.color}
                     active={category === c.key}
                     width={tileWidth}
-                    iconSize={16}
+                    height={64}
                     onPress={() => setCategory(c.key)}
                   />
                 ))}
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   fieldLabel: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 4 },
   input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, marginBottom: 10 },
-  catGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10, gap: 8 },
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginBottom: 10, gap: 8 },
   acctRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
   chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: '#EEE', marginRight: 8, marginBottom: 8 },
   chipActive: { backgroundColor: colors.primary },
