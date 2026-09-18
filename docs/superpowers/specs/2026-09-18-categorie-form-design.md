@@ -35,15 +35,16 @@ Props:
 | `active` | boolean | Stato selezionato |
 | `width` | number | Larghezza calcolata dal chiamante |
 | `onPress` | function | Handler del tap |
+| `inactiveColor` | string | Opzionale, colore icona quando `active` è falso; default `color` |
 
 Rendering: `Pressable` con stile base:
 
 - `height: 78`, `borderRadius: 16`, `borderWidth: 1`, `borderColor: '#E5E7EB'`, `backgroundColor: '#fff'`, `alignItems: 'center'`, `justifyContent: 'center'`, `gap: 4`.
 - `active` → `backgroundColor: color`, `borderColor: color`; icona e testo bianchi (`catTextActive`: `color: '#fff'`, `fontWeight: '600'`).
-- inattivo → sfondo bianco, icona `color`, testo `#374151` (`fontSize: 11`, `fontWeight: '500'`).
+- inattivo → sfondo bianco, icona `inactiveColor`, testo `#374151` (`fontSize: 11`, `fontWeight: '500'`).
 - Dimensione icona: 22.
 
-La tile "Tutte" dei Movimenti si ottiene passando `color='#111827'` e `icon='apps-outline'`.
+La tile "Tutte" dei Movimenti si ottiene passando `color='#111827'`, `icon='apps-outline'` e `inactiveColor={colors.textMuted}`, per replicate esattamente l'attuale icona grigia quando inattiva.
 
 ## Modifiche ai file
 
