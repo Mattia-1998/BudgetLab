@@ -8,6 +8,7 @@ import { SPENDING_CATEGORIES, CATEGORY_MAP } from '../constants/categories';
 import Segmented from './Segmented';
 import CategoryTile from './CategoryTile';
 import { colors } from '../theme/colors';
+import { FONT } from '../theme/typography';
 
 const parseDate = (value) => {
   const m = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -119,7 +120,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
       <View style={styles.backdrop}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.kaView, { paddingBottom: insets.bottom }]}>
           <ScrollView style={styles.card}>
-          <Text style={styles.title}>{isEdit ? 'Modifica movimento' : 'Nuovo movimento'}</Text>
+          <Text style={[styles.title, { fontFamily: FONT.semiBold }]}>{isEdit ? 'Modifica movimento' : 'Nuovo movimento'}</Text>
           <Segmented
             options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }, { value: 'transfer', label: 'Trasferimento' }]}
             value={kind}
