@@ -85,7 +85,7 @@ export default function AccountFormModal({ visible, onClose, initial, accounts =
   return (
     <Modal visible={visible} transparent animationType="slide" onShow={syncState} onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.kaView}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.kaView, { paddingBottom: insets.bottom }]}>
           <View style={styles.card}>
             <View style={styles.header}>
               <View>
