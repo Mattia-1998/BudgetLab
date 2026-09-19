@@ -71,6 +71,7 @@ export default function TransactionsScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(t) => t.id}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <TransactionItem
             transaction={item}
@@ -188,6 +189,7 @@ export default function TransactionsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  listContent: { paddingBottom: 100 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   errorText: { color: colors.negative },
   searchWrap: { marginHorizontal: 16, marginTop: 12, justifyContent: 'center' },
