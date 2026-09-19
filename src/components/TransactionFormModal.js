@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, useWindowDimensions, LayoutAnimation } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
-import { SPENDING_CATEGORIES } from '../constants/categories';
+import { SPENDING_CATEGORIES, CATEGORY_MAP, orderedCategoryKeys } from '../constants/categories';
 import Segmented from './Segmented';
 import CategoryTile from './CategoryTile';
 import { colors } from '../theme/colors';
@@ -23,16 +24,24 @@ const toDmy = (ts) => {
 export default function TransactionFormModal({ visible, onClose, accounts, initial }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const tileWidth = Math.floor(((width - 64) / 4) * 0.82);
+  const tileWidth = Math.floor((width - 64) / 4);
   const [amount, setAmount] = useState('');
   const [kind, setKind] = useState('expense');
   const [transferTo, setTransferTo] = useState(null);
   const [category, setCategory] = useState(SPENDING_CATEGORIES[0].key);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const [accountId, setAccountId] = useState(null);
   const [date, setDate] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState(null);
   const isEdit = !!initial;
+  const { central, rest } = orderedCategoryKeys();
+  const restKeys = rest.filter((key) => key !== 'trasferimento');
+
+  const toggleCategories = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCategoriesExpanded((v) => !v);
+  };
 
   const syncState = () => {
     setAmount(initial ? String(initial.amount) : '');
@@ -127,18 +136,39 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
             <>
               <Text style={styles.fieldLabel}>Categoria</Text>
               <View style={styles.catGrid}>
-                {SPENDING_CATEGORIES.map((c) => (
-                  <CategoryTile
-                    key={c.key}
-                    icon={c.icon}
-                    label={c.label}
-                    color={c.color}
-                    active={category === c.key}
-                    width={tileWidth}
-                    height={64}
-                    onPress={() => setCategory(c.key)}
-                  />
-                ))}
+                {central.map((key) => {
+                  const c = CATEGORY_MAP[key];
+                  return (
+                    <CategoryTile
+                      key={key}
+                      icon={c.icon}
+                      label={c.label}
+                      color={c.color}
+                      active={category === key}
+                      width={tileWidth}
+                      onPress={() => setCategory(key)}
+                    />
+                  );
+                })}
+                <Pressable style={[styles.catTileArrow, { width: tileWidth }, !categoriesExpanded && restKeys.includes(category) && styles.catTileArrowActive]} onPress={toggleCategories}>
+                  <Ionicons name={categoriesExpanded ? 'chevron-up' : 'chevron-down'} size={24} color={!categoriesExpanded && restKeys.includes(category) ? '#fff' : colors.textMuted} />
+                </Pressable>
+                {categoriesExpanded
+                  ? restKeys.map((key) => {
+                      const c = CATEGORY_MAP[key];
+                      return (
+                        <CategoryTile
+                          key={key}
+                          icon={c.icon}
+                          label={c.label}
+                          color={c.color}
+                          active={category === key}
+                          width={tileWidth}
+                          onPress={() => setCategory(key)}
+                        />
+                      );
+                    })
+                  : null}
               </View>
             </>
           ) : null}
@@ -211,7 +241,9 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   fieldLabel: { fontSize: 14, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 4 },
   input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, marginBottom: 10 },
-  catGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginBottom: 10, gap: 8 },
+  catGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10, gap: 8 },
+  catTileArrow: { height: 78, borderRadius: 16, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  catTileArrowActive: { backgroundColor: '#111827', borderColor: '#111827' },
   acctRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
   chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: '#EEE', marginRight: 8, marginBottom: 8 },
   chipActive: { backgroundColor: colors.primary },
