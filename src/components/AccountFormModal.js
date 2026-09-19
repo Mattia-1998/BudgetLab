@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Modal, View, Text, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
 import { colors } from '../theme/colors';
+import { FONT } from '../theme/typography';
 import { formatCurrency } from '../utils/format';
 import { nextAccountOrder } from '../utils/finance';
+import Segmented from './Segmented';
+import FormField from './FormField';
 
 const TYPES = ['carta', 'banca', 'contanti'];
 const TYPE_LABELS = { carta: 'Carta', banca: 'Banca', contanti: 'Contanti' };
@@ -81,55 +85,72 @@ export default function AccountFormModal({ visible, onClose, initial, accounts =
   return (
     <Modal visible={visible} transparent animationType="slide" onShow={syncState} onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.card, { marginBottom: insets.bottom }]}>
-          <Text style={styles.title}>{isEdit ? 'Modifica conto' : 'Nuovo conto'}</Text>
-          <TextInput style={styles.input} placeholder="Nome (es. Intesa)" placeholderTextColor={colors.faintText} value={name} onChangeText={setName} />
-          <TextInput
-            style={styles.input}
-            placeholder="Saldo iniziale (es. 100,00)"
-            placeholderTextColor={colors.faintText}
-            value={initialBalance}
-            onChangeText={(v) => setInitialBalance(formatInputCurrency(v))}
-            keyboardType="decimal-pad"
-            selection={{ start: Math.max(0, initialBalance.length - 2), end: Math.max(0, initialBalance.length - 2) }}
-          />
-          <View style={styles.typeRow}>
-            {TYPES.map((t) => (
-              <Pressable key={t} style={[styles.typeChip, type === t && styles.typeChipActive]} onPress={() => setType(t)}>
-                <Text style={[styles.typeText, type === t && styles.typeTextActive]}>{TYPE_LABELS[t]}</Text>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.kaView}>
+          <View style={styles.card}>
+            <View style={styles.header}>
+              <View>
+                <Text style={styles.headerEyebrow}>Conti</Text>
+                <Text style={styles.title}>{isEdit ? 'Modifica conto' : 'Nuovo conto'}</Text>
+              </View>
+              <Pressable style={styles.closeBtn} onPress={onClose} hitSlop={8}>
+                <Ionicons name="close" size={20} color={colors.textMuted} />
               </Pressable>
-            ))}
-          </View>
-          {type !== 'contanti' ? (
-            <TextInput
-              style={styles.input}
-              placeholder={type === 'banca' ? 'IBAN (es. IT60X0542811101000000123456)' : 'Numero carta (es. 1234 5678 9101 1121)'}
-              placeholderTextColor={colors.faintText}
-              value={code}
-              onChangeText={setCode}
-              autoCapitalize="characters"
-            />
-          ) : null}
-          <View style={styles.colorBlock}>
-            {COLOR_ROWS.map((rowColors, rowIndex) => (
-              <View key={rowIndex} style={styles.colorRow}>
-                {rowColors.map((c) => (
-                  <Pressable key={c} style={[styles.colorDot, { backgroundColor: c }, color === c && styles.colorDotActive]} onPress={() => setColor(c)} />
+            </View>
+            <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
+              <FormField icon="wallet-outline" label="Nome" placeholder="Nome (es. Intesa)" value={name} onChangeText={setName} />
+              <FormField
+                icon="cash-outline"
+                label="Saldo iniziale"
+                placeholder="Saldo iniziale (es. 100,00)"
+                value={initialBalance}
+                onChangeText={(v) => setInitialBalance(formatInputCurrency(v))}
+                keyboardType="decimal-pad"
+                selection={{ start: Math.max(0, initialBalance.length - 2), end: Math.max(0, initialBalance.length - 2) }}
+              />
+              <Text style={styles.fieldLabel}>Tipo di conto</Text>
+              <Segmented
+                options={[
+                  { value: 'carta', label: TYPE_LABELS.carta, icon: 'card-outline' },
+                  { value: 'banca', label: TYPE_LABELS.banca, icon: 'business-outline' },
+                  { value: 'contanti', label: TYPE_LABELS.contanti, icon: 'cash-outline' },
+                ]}
+                value={type}
+                onChange={setType}
+              />
+              {type !== 'contanti' ? (
+                <FormField
+                  icon="card-outline"
+                  label="Codice"
+                  placeholder={type === 'banca' ? 'IBAN (es. IT60X0542811101000000123456)' : 'Numero carta (es. 1234 5678 9101 1121)'}
+                  value={code}
+                  onChangeText={setCode}
+                  autoCapitalize="characters"
+                />
+              ) : null}
+              <Text style={styles.fieldLabel}>Colore</Text>
+              <View style={styles.colorBlock}>
+                {COLOR_ROWS.map((rowColors, rowIndex) => (
+                  <View key={rowIndex} style={styles.colorRow}>
+                    {rowColors.map((c) => (
+                      <Pressable key={c} style={[styles.colorDot, { backgroundColor: c }, color === c && styles.colorDotActive]} onPress={() => setColor(c)} />
+                    ))}
+                  </View>
                 ))}
               </View>
-            ))}
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+            </ScrollView>
+            <View style={styles.actions}>
+              <Pressable style={[styles.btn, styles.btnCancel]} onPress={onClose}>
+                <Text style={styles.btnText}>Annulla</Text>
+              </Pressable>
+              <Pressable style={[styles.btn, styles.btnSave]} onPress={save} activeOpacity={0.9}>
+                <Ionicons name="checkmark" size={18} color="#fff" />
+                <Text style={styles.btnSaveText}>Salva</Text>
+              </Pressable>
+            </View>
           </View>
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-          <View style={styles.actions}>
-            <Pressable style={[styles.btn, styles.btnCancel]} onPress={onClose}>
-              <Text style={styles.btnText}>Annulla</Text>
-            </Pressable>
-            <Pressable style={[styles.btn, styles.btnSave]} onPress={save}>
-              <Text style={[styles.btnText, { color: '#fff' }]}>Salva</Text>
-            </Pressable>
-          </View>
+          <View pointerEvents="none" style={[styles.navBarStrip, { height: insets.bottom }]} />
         </KeyboardAvoidingView>
-        <View pointerEvents="none" style={[styles.navBarStrip, { height: insets.bottom }]} />
       </View>
     </Modal>
   );
@@ -137,23 +158,24 @@ export default function AccountFormModal({ visible, onClose, initial, accounts =
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  kaView: { flex: 1, justifyContent: 'flex-end' },
   navBarStrip: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#000000' },
-  card: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20 },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, marginBottom: 12 },
-  colorBlock: { marginBottom: 12 },
+  card: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20, maxHeight: '92%' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', marginBottom: 16 },
+  headerEyebrow: { fontSize: 11, fontFamily: FONT.semiBold, color: '#4F46E5', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 },
+  title: { fontSize: 22, fontFamily: FONT.bold, color: '#0F172A' },
+  closeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
+  scroll: { flexShrink: 1 },
+  fieldLabel: { fontSize: 12, fontFamily: FONT.semiBold, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8, marginTop: 4 },
+  colorBlock: { marginBottom: 8 },
   colorRow: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 10, marginBottom: 12 },
-  typeRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  typeChip: { flex: 1, alignItems: 'center', paddingVertical: 12, borderRadius: 8, backgroundColor: '#EEE' },
-  typeChipActive: { backgroundColor: colors.primary },
-  typeText: { color: '#333', fontWeight: '600' },
-  typeTextActive: { color: '#fff' },
   colorDot: { width: 32, height: 32, borderRadius: 16 },
-  colorDotActive: { borderWidth: 3, borderColor: '#000' },
-  error: { color: colors.negative, marginBottom: 10 },
-  actions: { flexDirection: 'row', justifyContent: 'space-between' },
-  btn: { flex: 1, alignItems: 'center', padding: 14, borderRadius: 8, marginHorizontal: 6 },
-  btnCancel: { backgroundColor: '#EEE' },
-  btnSave: { backgroundColor: colors.primary },
-  btnText: { color: '#333', fontWeight: '600' },
+  colorDotActive: { borderWidth: 3, borderColor: '#0F172A' },
+  error: { color: colors.negative, fontFamily: FONT.medium, fontSize: 13, marginTop: 4, marginBottom: 8 },
+  actions: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 14 },
+  btnCancel: { backgroundColor: '#F1F5F9' },
+  btnSave: { backgroundColor: '#4F46E5', elevation: 3, shadowColor: '#4F46E5', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
+  btnText: { color: '#475569', fontFamily: FONT.semiBold, fontSize: 15 },
+  btnSaveText: { color: '#fff', fontFamily: FONT.semiBold, fontSize: 15 },
 });
