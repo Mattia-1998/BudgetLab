@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { monthRange, isInRange, accountBalance, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt, matchesAccountFilter, startOfMonth, periodRange, shiftAnchor } from '../src/utils/finance.js';
+import { monthRange, isInRange, accountBalance, accountTransactionsTotal, totalBalance, expensesByCategory, sumByKind, sortAccountsByOrder, nextAccountOrder, dragInsertIndex, dragRowOffsets, reorderAt, matchesAccountFilter, startOfMonth, periodRange, shiftAnchor } from '../src/utils/finance.js';
 import { CATEGORIES, CATEGORY_MAP, orderedCategoryKeys, toggleCategory, hasSelectedCategories, matchesCategorySelection } from '../src/constants/categories.js';
 import { formatCurrency, formatPeriodLabel } from '../src/utils/format.js';
 
@@ -20,6 +20,11 @@ assert.equal(accountBalance(txs, 'c1'), 60); // 100 - 30 - 10
 assert.equal(accountBalance(txs, 'c2'), -20);
 assert.equal(totalBalance(accounts, txs), 40);
 
+assert.equal(accountTransactionsTotal(txs, 'c1'), 60);
+assert.equal(accountTransactionsTotal(txs, 'c2'), -20);
+assert.equal(accountTransactionsTotal([], 'c1'), 0);
+assert.equal(accountBalance(txs, 'c1', 50), accountTransactionsTotal(txs, 'c1') + 50);
+
 const accsIB = [{ id: 'c1', name: 'Conto', initialBalance: 50 }, { id: 'c2', name: 'Contanti' }];
 assert.equal(accountBalance(txs, 'c1', 50), 110);
 assert.equal(totalBalance(accsIB, txs), 90); // (60+50) + (-20)
@@ -38,6 +43,8 @@ const prelievo = [
 ];
 assert.equal(accountBalance([...txs, ...prelievo], 'c1'), 10);   // 60 - 50
 assert.equal(accountBalance([...txs, ...prelievo], 'c2'), 30);   // -20 + 50
+assert.equal(accountTransactionsTotal([...txs, ...prelievo], 'c1'), 10);
+assert.equal(accountTransactionsTotal([...txs, ...prelievo], 'c2'), 30);
 assert.equal(totalBalance(accounts, [...txs, ...prelievo]), 40); // totale invariato
 
 const deposito = [

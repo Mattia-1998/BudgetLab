@@ -7,7 +7,7 @@ import { db } from '../../firebase/db';
 import { colors } from '../theme/colors';
 import { FONT } from '../theme/typography';
 import { formatCurrency } from '../utils/format';
-import { nextAccountOrder } from '../utils/finance';
+import { nextAccountOrder, accountBalance, accountTransactionsTotal } from '../utils/finance';
 import Segmented from './Segmented';
 import FormField from './FormField';
 
@@ -33,19 +33,20 @@ function parseCurrencyInput(text) {
   return Number.isNaN(value) ? 0 : value;
 }
 
-export default function AccountFormModal({ visible, onClose, initial, accounts = [] }) {
+export default function AccountFormModal({ visible, onClose, initial, accounts = [], transactions = [] }) {
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
-  const [initialBalance, setInitialBalance] = useState('');
+  const [balance, setBalance] = useState('');
   const [type, setType] = useState(TYPES[0]);
   const [color, setColor] = useState(COLORS[0]);
   const [code, setCode] = useState('');
   const [error, setError] = useState(null);
   const isEdit = !!initial;
+  const net = isEdit ? accountTransactionsTotal(transactions, initial.id) : 0;
 
   const syncState = () => {
     setName(initial ? initial.name : '');
-    setInitialBalance(initial ? formatCurrency(initial.initialBalance) : '');
+    setBalance(initial ? formatCurrency(accountBalance(transactions, initial.id, initial.initialBalance)) : '');
     setType(initial ? initial.type : TYPES[0]);
     setColor(initial ? initial.color : COLORS[0]);
     setCode(initial ? (initial.code ?? '') : '');
@@ -57,16 +58,17 @@ export default function AccountFormModal({ visible, onClose, initial, accounts =
       setError('Inserisci un nome');
       return;
     }
-    const parsed = parseCurrencyInput(initialBalance);
-    if (initialBalance.trim() !== '' && parsed === 0 && !/[\d]/.test(initialBalance)) {
+    const parsed = parseCurrencyInput(balance);
+    if (balance.trim() !== '' && parsed === 0 && !/[\d]/.test(balance)) {
       setError('Inserisci un saldo valido (es. 100,00)');
       return;
     }
+    const balanceValue = balance.trim() === '' ? 0 : parsed;
     const data = {
       name: name.trim(),
       type,
       color,
-      initialBalance: initialBalance.trim() === '' ? 0 : parsed,
+      initialBalance: isEdit ? balanceValue - net : balanceValue,
       code: code.trim(),
       createdAt: initial ? initial.createdAt : Date.now(),
     };
@@ -100,13 +102,18 @@ export default function AccountFormModal({ visible, onClose, initial, accounts =
               <FormField icon="wallet-outline" label="Nome" placeholder="Nome (es. Intesa)" value={name} onChangeText={setName} />
               <FormField
                 icon="cash-outline"
-                label="Saldo iniziale"
-                placeholder="Saldo iniziale (es. 100,00)"
-                value={initialBalance}
-                onChangeText={(v) => setInitialBalance(formatInputCurrency(v))}
+                label={isEdit ? 'Saldo attuale' : 'Saldo iniziale'}
+                placeholder={isEdit ? 'Saldo attuale (es. 100,00)' : 'Saldo iniziale (es. 100,00)'}
+                value={balance}
+                onChangeText={(v) => setBalance(formatInputCurrency(v))}
                 keyboardType="decimal-pad"
-                selection={{ start: Math.max(0, initialBalance.length - 2), end: Math.max(0, initialBalance.length - 2) }}
+                selection={{ start: Math.max(0, balance.length - 2), end: Math.max(0, balance.length - 2) }}
               />
+              {isEdit ? (
+                <Text style={styles.balanceHint}>
+                  Saldo iniziale: {formatCurrency((balance.trim() === '' ? 0 : parseCurrencyInput(balance)) - net)}
+                </Text>
+              ) : null}
               <Text style={styles.fieldLabel}>Tipo di conto</Text>
               <Segmented
                 options={[
@@ -171,6 +178,7 @@ const styles = StyleSheet.create({
   colorRow: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 10, marginBottom: 12 },
   colorDot: { width: 32, height: 32, borderRadius: 16 },
   colorDotActive: { borderWidth: 3, borderColor: '#0F172A' },
+  balanceHint: { fontFamily: FONT.medium, fontSize: 12, color: colors.textMuted, marginTop: 6, marginBottom: 4 },
   error: { color: colors.negative, fontFamily: FONT.medium, fontSize: 13, marginTop: 4, marginBottom: 8 },
   actions: { flexDirection: 'row', gap: 12, marginTop: 16 },
   btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 14 },

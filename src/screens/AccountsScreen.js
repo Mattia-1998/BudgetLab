@@ -265,7 +265,7 @@ export default function AccountsScreen() {
           <Text style={styles.addText}>Aggiungi conto</Text>
         </TouchableOpacity>
       </View>
-      <AccountFormModal visible={modalVisible} onClose={() => setModalVisible(false)} initial={editing} accounts={accounts} />
+      <AccountFormModal visible={modalVisible} onClose={() => setModalVisible(false)} initial={editing} accounts={accounts} transactions={transactions} />
     </View>
   );
 }

@@ -12,13 +12,16 @@ export function signedAmount(t) {
   return t.kind === 'income' ? t.amount : -t.amount;
 }
 
-export function accountBalance(transactions, accountId, initialBalance = 0) {
-  const sum = transactions.reduce((sum, t) => {
+export function accountTransactionsTotal(transactions, accountId) {
+  return transactions.reduce((sum, t) => {
     if (t.accountId === accountId) return sum + signedAmount(t);
     if (t.kind === 'transfer' && t.transferTo === accountId) return sum + t.amount;
     return sum;
   }, 0);
-  return sum + (initialBalance || 0);
+}
+
+export function accountBalance(transactions, accountId, initialBalance = 0) {
+  return accountTransactionsTotal(transactions, accountId) + (initialBalance || 0);
 }
 
 export function totalBalance(accounts, transactions) {
