@@ -7,6 +7,7 @@ import { db } from '../../firebase/db';
 import { SPENDING_CATEGORIES, CATEGORY_MAP } from '../constants/categories';
 import Segmented from './Segmented';
 import CategoryTile from './CategoryTile';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { colors } from '../theme/colors';
 import { FONT } from '../theme/typography';
 
@@ -38,6 +39,8 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const [amountFocused, setAmountFocused] = useState(false);
   const [dateFocused, setDateFocused] = useState(false);
   const [noteFocused, setNoteFocused] = useState(false);
+  const [pickerDate, setPickerDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const isEdit = !!initial;
   const spendKeys = SPENDING_CATEGORIES.map((c) => c.key);
   const visibleKeys = spendKeys.slice(0, 3);
@@ -46,6 +49,23 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const toggleCategories = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setCategoriesExpanded((v) => !v);
+  };
+
+  const openDatePicker = () => {
+    const parsed = parseDate(date);
+    const value = parsed ? new Date(parsed) : new Date();
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value,
+        mode: 'date',
+        onChange: (event, selected) => {
+          if (event.type === 'set' && selected) setDate(toDmy(selected.getTime()));
+        },
+      });
+    } else {
+      setPickerDate(value);
+      setShowDatePicker(true);
+    }
   };
 
   const syncState = () => {
@@ -248,7 +268,6 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
               )}
               <Text style={styles.fieldLabel}>Data (GG/MM/AAAA)</Text>
               <View style={[styles.field, dateFocused && styles.fieldFocused]}>
-                <Ionicons name="calendar-outline" size={18} color={colors.faintText} />
                 <TextInput
                   style={styles.fieldInput}
                   value={date}
@@ -257,7 +276,31 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
                   onFocus={() => setDateFocused(true)}
                   onBlur={() => setDateFocused(false)}
                 />
+                <Pressable style={styles.dateBtn} onPress={openDatePicker} hitSlop={8}>
+                  <Ionicons name="calendar-outline" size={18} color={colors.faintText} />
+                </Pressable>
               </View>
+              {Platform.OS === 'ios' && showDatePicker ? (
+                <View style={styles.pickerBox}>
+                  <DateTimePicker
+                    mode="date"
+                    display="spinner"
+                    value={pickerDate}
+                    onChange={(event, selected) => {
+                      if (event.type === 'set' && selected) setPickerDate(selected);
+                    }}
+                  />
+                  <Pressable
+                    style={styles.pickerDone}
+                    onPress={() => {
+                      setDate(toDmy(pickerDate.getTime()));
+                      setShowDatePicker(false);
+                    }}
+                  >
+                    <Text style={styles.pickerDoneText}>Fatto</Text>
+                  </Pressable>
+                </View>
+              ) : null}
               <Text style={styles.fieldLabel}>Nota (opzionale)</Text>
               <View style={[styles.field, noteFocused && styles.fieldFocused]}>
                 <Ionicons name="create-outline" size={18} color={colors.faintText} />
@@ -320,6 +363,10 @@ const styles = StyleSheet.create({
   warn: { color: '#B26A00', fontFamily: FONT.medium },
   field: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 12, height: 46, marginBottom: 12 },
   fieldInput: { flex: 1, fontSize: 14, fontFamily: FONT.medium, color: '#0F172A', padding: 0 },
+  dateBtn: { padding: 6 },
+  pickerBox: { alignItems: 'center', borderRadius: 12, backgroundColor: '#F8FAFC', marginBottom: 12, overflow: 'hidden' },
+  pickerDone: { paddingVertical: 8, paddingHorizontal: 20, marginBottom: 8 },
+  pickerDoneText: { color: '#4F46E5', fontFamily: FONT.semiBold, fontSize: 14 },
   error: { color: colors.negative, fontFamily: FONT.medium, fontSize: 13, marginTop: 4, marginBottom: 8 },
   actions: { flexDirection: 'row', gap: 12, marginTop: 16 },
   btn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 14 },

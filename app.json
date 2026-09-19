@@ -18,6 +18,10 @@
       }
     },
     "web": {},
-    "plugins": ["./plugins/withDebugApplicationIdSuffix", "./plugins/withBlackNavigationBar"]
+    "plugins": [
+      "./plugins/withDebugApplicationIdSuffix",
+      "./plugins/withBlackNavigationBar",
+      "@react-native-community/datetimepicker"
+    ]
   }
 }
