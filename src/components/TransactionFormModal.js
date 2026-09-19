@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/db';
-import { SPENDING_CATEGORIES, CATEGORY_MAP, orderedCategoryKeys } from '../constants/categories';
+import { SPENDING_CATEGORIES, CATEGORY_MAP } from '../constants/categories';
 import Segmented from './Segmented';
 import CategoryTile from './CategoryTile';
 import { colors } from '../theme/colors';
@@ -35,8 +35,9 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
   const [note, setNote] = useState('');
   const [error, setError] = useState(null);
   const isEdit = !!initial;
-  const { central, rest } = orderedCategoryKeys();
-  const restKeys = rest.filter((key) => key !== 'trasferimento');
+  const spendKeys = SPENDING_CATEGORIES.map((c) => c.key);
+  const visibleKeys = spendKeys.slice(0, 3);
+  const restKeys = spendKeys.slice(3);
 
   const toggleCategories = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -136,7 +137,7 @@ export default function TransactionFormModal({ visible, onClose, accounts, initi
             <>
               <Text style={styles.fieldLabel}>Categoria</Text>
               <View style={styles.catGrid}>
-                {central.map((key) => {
+                {visibleKeys.map((key) => {
                   const c = CATEGORY_MAP[key];
                   return (
                     <CategoryTile
