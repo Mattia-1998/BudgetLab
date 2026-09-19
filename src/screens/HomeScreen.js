@@ -53,8 +53,7 @@ export default function HomeScreen() {
           </View>
         </View>
         <AccountCards accounts={accounts} transactions={transactions} />
-        <Text style={styles.sectionTitle}>Spese per categoria · {label}</Text>
-        <ExpensePie transactions={transactions} startMs={startMs} endMs={endMs} />
+        <ExpensePie transactions={transactions} startMs={startMs} endMs={endMs} label={label} accounts={accounts} />
         <Text style={styles.sectionTitle}>Ultimi movimenti</Text>
         {recent.length === 0 ? (
           <Text style={styles.empty}>{allActive ? 'Nessun movimento.' : 'Nessun movimento nel periodo.'}</Text>
